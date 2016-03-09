@@ -5,8 +5,6 @@ public class Main {
 		
 		Affichage a = new Affichage();
 		a.setVisible(true);
-		//Lieu.LireLieuxPossible();
-		//Agence.LireAgence();
 	}
 
 }

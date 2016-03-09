@@ -6,16 +6,18 @@ class Carte extends JPanel {
 	
 	Affichage affichage;
     
-    Carte(Affichage _affichage)
+    Carte(Affichage pAffichage)
 	{
-    	affichage = _affichage;
+    	affichage = pAffichage;
 
 	    //setBackground(Color.lightGray);
 	}  
     
     public void paintComponent(Graphics g)
 	{
-    	super.paintComponent(g); 
-    	affichage.dessinerCarte(g);
+    	Graphics2D g2d = (Graphics2D)g;
+    	
+    	super.paintComponent(g2d); 
+    	affichage.dessinerCarte(g2d);
 	}
 }

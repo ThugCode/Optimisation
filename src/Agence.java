@@ -1,3 +1,4 @@
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -50,7 +51,7 @@ public class Agence {
 						nouvelleAgence.setLongitude(Float.parseFloat(parts[3]));
 						nouvelleAgence.setLatitude(Float.parseFloat(parts[4]));
 						nouvelleAgence.setNbpersonnes1(Integer.parseInt(parts[5]));
-						System.out.println(nouvelleAgence);
+						//System.out.println(nouvelleAgence);
 						liste.add(nouvelleAgence);
 					}
 					i++;
