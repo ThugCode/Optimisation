@@ -92,6 +92,9 @@ public class Lieu {
 	}
 	
 	public String toString() {
-		return "Lieu "+this.nom+" ("+this.id+") cp : "+this.codepostal;
+		return "Lieu "+this.nom+
+				" ("+this.id+") cp : "+this.codepostal+
+				" longitude : "+this.longitude+
+				" latitude : "+this.latitude;
 	}
 }
