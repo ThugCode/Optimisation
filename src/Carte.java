@@ -4,13 +4,17 @@ import java.awt.*;
 class Carte extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
-	Affichage affichage;
+	public final int LARGEUR = 800;
+	public final int HAUTEUR = 600;
+	private Affichage affichage;
     
     Carte(Affichage pAffichage)
 	{
     	affichage = pAffichage;
-
-	    //setBackground(Color.lightGray);
+    	
+    	setBounds(0, 0, 700, HAUTEUR);
+    	setBorder(BorderFactory.createLineBorder(Color.black));
+	    setBackground(Color.lightGray);
 	}  
     
     public void paintComponent(Graphics g)

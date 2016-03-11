@@ -1,11 +1,10 @@
-import java.util.ArrayList;
-import java.util.List;
 
 public class Trajet {
 	
 	private int id;
 	private Agence agence;
 	private Lieu lieu;
+	private float distanceKm;
 	
 	public Trajet() {
 		
@@ -21,19 +20,6 @@ public class Trajet {
 		float xaxb = this.agence.getLongitude()-this.lieu.getLongitude();
 		float yayb = this.agence.getLatitude()-this.lieu.getLatitude();
 		return (float) Math.sqrt(Math.pow(xaxb, 2) + Math.pow(yayb, 2));
-	}
-	
-	public static List<Trajet> trajetAuHasard(List<Agence> agences, List<Lieu> lieux) {
-		
-		int random;
-		ArrayList<Trajet> trajets = new ArrayList<Trajet>();
-		
-		for (Agence agence : agences) {
-			random = (int)(Math.random()*lieux.size());
-			trajets.add(new Trajet(agence, lieux.get(random)));
-		}
-		
-		return trajets;
 	}
 	
 	public int getId() {
@@ -58,5 +44,13 @@ public class Trajet {
 
 	public void setLieu(Lieu lieu) {
 		this.lieu = lieu;
+	}
+
+	public float getDistanceKm() {
+		return distanceKm;
+	}
+
+	public void setDistanceKm(float distanceKm) {
+		this.distanceKm = distanceKm;
 	}
 }
