@@ -13,13 +13,17 @@ public class Logique {
     	
     	lieux = StaticMethods.LireLieuxPossible();
     	agences = StaticMethods.LireAgence();
-    	trajets = StaticMethods.trajetAuHasard(agences, lieux);
+    	trajets = StaticMethods.trajetAuPlusPres(agences, lieux);
 	}
 	
-	public void resetTrajet() {
+	public void trajetAuHasard() {
 		trajets = StaticMethods.trajetAuHasard(agences, lieux);
 	}
 
+	public void trajetAuPlusPres() {
+		trajets = StaticMethods.trajetAuPlusPres(agences, lieux);
+	}
+	
 	public Affichage getAffichage() {
 		return affichage;
 	}

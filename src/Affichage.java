@@ -20,7 +20,8 @@ public class Affichage extends JFrame implements ActionListener, ItemListener {
 	public Logique logique;
 	
 	private JPanel pnl_control;
-	private JButton btn_reset;
+	private JButton btn_hasard;
+	private JButton btn_pluspres;
 	private JCheckBox cb_trajet;
 	private JCheckBox cb_lieu;
 	private JCheckBox cb_agence;
@@ -75,10 +76,15 @@ public class Affichage extends JFrame implements ActionListener, ItemListener {
 		
 		height += 40;
 		
-		btn_reset = new JButton("Reset");
-		btn_reset.setBounds(20, height, 120, 50);
-		btn_reset.addActionListener(this);
-		pnl_control.add(btn_reset);
+		btn_hasard = new JButton("Hasard");
+		btn_hasard.setBounds(20, height, 120, 50);
+		btn_hasard.addActionListener(this);
+		pnl_control.add(btn_hasard);
+		
+		btn_pluspres = new JButton("Plus près");
+		btn_pluspres.setBounds(160, height, 120, 50);
+		btn_pluspres.addActionListener(this);
+		pnl_control.add(btn_pluspres);
 		
 		height += 60;
 		
@@ -122,14 +128,29 @@ public class Affichage extends JFrame implements ActionListener, ItemListener {
 				g.fillOval(pointX1,pointY1,rayon,rayon);
 		}
 		
-		g.setColor(Color.black);
+		
 		rayon = (int)(3*facteur);
 		for (Agence agence : logique.getAgences()) {
 			pointX1 = basX - agence.getLongitudeForMap(facteur);
 			pointY1 = basY - agence.getLatitudeForMap(facteur);
+			g.setColor(Color.black);
 			if(afficherAgence)
 				g.fillOval(pointX1,pointY1,rayon,rayon);
+			
+			g.setColor(Color.green);
+			for (Lien voisin : agence.getVoisins()) {
+				if(agence.equals(voisin.getLieu1())) {
+					pointX2 = basX - voisin.getLieu2().getLongitudeForMap(facteur);
+					pointY2 = basY - voisin.getLieu2().getLatitudeForMap(facteur);
+				} else {
+					pointX2 = basX - voisin.getLieu1().getLongitudeForMap(facteur);
+					pointY2 = basY - voisin.getLieu1().getLatitudeForMap(facteur);
+				}
+				g.drawLine(pointX1,pointY1,pointX2,pointY2);
+			}
 		}
+		
+		g.setColor(Color.black);
 		
 		float dist = 0;
 		float distanceTotal = 0;
@@ -143,13 +164,13 @@ public class Affichage extends JFrame implements ActionListener, ItemListener {
 			if(afficherTrajet)
 				g.drawLine(pointX1,pointY1,pointX2,pointY2);
 			
-			dist = trajet.getDistance();
+			dist = trajet.getDistanceKm();
 			distanceTotal += dist;
 			prixTotal += dist*trajet.getAgence().getNbpersonnes1();
 			
 			trajet.getLieu().setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+trajet.getAgence().getNbpersonnes1());
 			if(trajet.getLieu().getNbPersonneAssociees() > 60)
-				System.out.println("Au dela de 60 personne pour le trajet "+trajet.getId());
+				System.out.println("Au dela de 60 personnes pour le lieu " + trajet.getLieu().getNom());
 			
 			if(!trajet.getLieu().isAssocie()) {
 				trajet.getLieu().setAssocie(true);
@@ -163,8 +184,11 @@ public class Affichage extends JFrame implements ActionListener, ItemListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == btn_reset) {
-			logique.resetTrajet();
+		if(e.getSource() == btn_hasard) {
+			logique.trajetAuHasard();
+			carte.repaint();
+		} else if(e.getSource() == btn_pluspres) {
+			logique.trajetAuPlusPres();
 			carte.repaint();
 		}
 	}

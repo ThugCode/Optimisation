@@ -6,6 +6,9 @@ public class Lieu extends Emplacement {
 	
 	public Lieu() {
 		super();
+		
+		this.nbPersonneAssociees = 0;
+		this.associe = false;
 	}
 	
 	public Lieu(int id, String nom, String codepostal, float longitude, float latitude) {
@@ -32,7 +35,7 @@ public class Lieu extends Emplacement {
 	public void setAssocie(boolean associe) {
 		this.associe = associe;
 	}
-
+	
 	public String toString() {
 		return "Lieu "+this.nom+
 				" ("+this.id+") cp : "+this.codepostal+
