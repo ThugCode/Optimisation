@@ -1,5 +1,5 @@
-
-public class Lieu extends Emplacement {
+package Noeuds;
+public class Lieu extends Noeud {
 
 	private int nbPersonneAssociees;
 	private boolean associe;

@@ -1,5 +1,6 @@
+package Noeuds;
 
-public class Emplacement {
+public class Noeud {
 	
 	protected int id;
 	protected String nom;
@@ -7,11 +8,11 @@ public class Emplacement {
 	protected float longitude;
 	protected float latitude;
 	
-	public Emplacement() {
+	public Noeud() {
 		super();
 	}
 	
-	public Emplacement(int id, String nom, String codepostal, float longitude, float latitude) {
+	public Noeud(int id, String nom, String codepostal, float longitude, float latitude) {
 		super();
 		this.id = id;
 		this.nom = nom;

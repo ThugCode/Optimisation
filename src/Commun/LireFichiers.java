@@ -1,59 +1,16 @@
+package Commun;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 
-public class StaticMethods {
-	
-	public static ArrayList<Trajet> trajetAuHasard(ArrayList<Agence> agences, ArrayList<Lieu> lieux) {
-		
-		int random;
-		ArrayList<Trajet> trajets = new ArrayList<Trajet>();
-		
-		for (Agence agence : agences) {
-			random = (int)(Math.random()*lieux.size());
-			trajets.add(new Trajet(agence, lieux.get(random)));
-		}
-		
-		return trajets;
-	}
+import Arcs.Lien;
+import Noeuds.Agence;
+import Noeuds.Lieu;
 
-	public static ArrayList<Trajet> trajetAuPlusPres(ArrayList<Agence> agences, ArrayList<Lieu> lieux) {
-		
-		Trajet temp = new Trajet();
-		Lieu best;
-		float min;
-		ArrayList<Trajet> trajets = new ArrayList<Trajet>();
-		
-		for (Agence agence : agences) {
-			temp.setAgence(agence);
-			best = null;
-			min = Float.MAX_VALUE;
-			for (Lieu lieu : lieux) {
-				temp.setLieu(lieu);
-				if(best == null || temp.getDistanceKm() < min) {
-					best = lieu;
-					min = temp.getDistanceKm();
-				}
-			}
-			trajets.add(new Trajet(agence, best));
-		}
-		return trajets;
-	}
-	
-	public static ArrayList<Trajet> trajetBarycentre(ArrayList<Agence> agences, ArrayList<Lieu> lieux) {
-		
-		ArrayList<Trajet> trajets = new ArrayList<Trajet>();
-		
-		//for (Agence agence : agences) {}
-			
-		//for (Lieu lieu : lieux) {}
-			
-		return trajets;
-	}
+public class LireFichiers {
 
 	public static ArrayList<Agence> LireAgence() {
 		
@@ -78,7 +35,7 @@ public class StaticMethods {
 						nouvelleAgence.setCodepostal(parts[2].replace("\"", ""));
 						nouvelleAgence.setLongitude(Float.parseFloat(parts[3]));
 						nouvelleAgence.setLatitude(Float.parseFloat(parts[4]));
-						nouvelleAgence.setNbpersonnes1(Integer.parseInt(parts[5]));
+						nouvelleAgence.setNbpersonnes(Integer.parseInt(parts[5]));
 						//System.out.println(nouvelleAgence);
 						liste.add(nouvelleAgence);
 						

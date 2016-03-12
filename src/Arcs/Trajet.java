@@ -1,42 +1,35 @@
+package Arcs;
+import Noeuds.Agence;
+import Noeuds.Lieu;
 
+/*
+ * Arc entre une agence et un lieu
+ */
 public class Trajet {
 	
 	private Agence agence;
 	private Lieu lieu;
-	private float distanceKm;
 	
-	public Trajet() {
-		
-	}
+	public Trajet() {}
 	
 	public Trajet(Agence agence, Lieu lieu) {
 		this.agence = agence;
 		this.lieu = lieu;
 	}
 
+	/*
+	 * Retourne la distance entre les latitudes et longitudes de l'agence et du lieu
+	 */
 	public float getDistance() {
 		
 		float xaxb = this.agence.getLongitude()-this.lieu.getLongitude();
 		float yayb = this.agence.getLatitude()-this.lieu.getLatitude();
 		return (float) Math.sqrt(Math.pow(xaxb, 2) + Math.pow(yayb, 2));
 	}
-
-	public Agence getAgence() {
-		return agence;
-	}
-
-	public void setAgence(Agence agence) {
-		this.agence = agence;
-	}
-
-	public Lieu getLieu() {
-		return lieu;
-	}
-
-	public void setLieu(Lieu lieu) {
-		this.lieu = lieu;
-	}
-
+	
+	/*
+	 * Retourne la distance en kilometre entre l'agence et le lieu
+	 */
 	public float getDistanceKm() {
 		
 		double R = 6371;
@@ -54,7 +47,16 @@ public class Trajet {
 		return (float) (R * c);
 	}
 
-	public void setDistanceKm(float distanceKm) {
-		this.distanceKm = distanceKm;
+	public Agence getAgence() {
+		return agence;
+	}
+	public void setAgence(Agence agence) {
+		this.agence = agence;
+	}
+	public Lieu getLieu() {
+		return lieu;
+	}
+	public void setLieu(Lieu lieu) {
+		this.lieu = lieu;
 	}
 }

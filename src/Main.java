@@ -1,9 +1,13 @@
+import Affichage.InterfaceVisuelle;
 
+/*
+ * Classe de lancement de l'application
+ */
 public class Main {
 
 	public static void main(String[] args) {
 		
-		Affichage a = new Affichage();
+		InterfaceVisuelle a = new InterfaceVisuelle();
 		a.setVisible(true);
 		
 		/*

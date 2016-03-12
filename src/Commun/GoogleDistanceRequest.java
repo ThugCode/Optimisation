@@ -1,3 +1,4 @@
+package Commun;
 import com.squareup.okhttp.OkHttpClient;
 import com.squareup.okhttp.Request;
 import com.squareup.okhttp.Response;
@@ -7,7 +8,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class GoogMatrixRequest {
+public class GoogleDistanceRequest {
 
 	private static final String path = "https://maps.googleapis.com/maps/api/distancematrix/json?";
 	private static final String API_KEY = "AIzaSyCxblp5Zfls3lmmnfz1pVNwkaE_PxCpJYc";
