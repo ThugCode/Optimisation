@@ -13,6 +13,7 @@ import Noeuds.Lieu;
 public class LireFichiers {
 
 	public static ArrayList<Agence> LireAgence() {
+		int nombreDeVoisins = 10;
 		
 		ArrayList<Agence> liste = new ArrayList<Agence>();
 		String filePath = new File("").getAbsolutePath();
@@ -46,15 +47,15 @@ public class LireFichiers {
 							if(!nouvelleAgence.getVoisins().contains(temp)) {
 								nouvelleAgence.getVoisins().add(temp);
 								Collections.sort(nouvelleAgence.getVoisins());
-								if(nouvelleAgence.getVoisins().size()>5)
-									nouvelleAgence.getVoisins().remove(5);
+								if(nouvelleAgence.getVoisins().size()>nombreDeVoisins)
+									nouvelleAgence.getVoisins().remove(nombreDeVoisins);
 							}
 							
 							if(!voisin.getVoisins().contains(temp)) {
 								voisin.getVoisins().add(temp);
 								Collections.sort(voisin.getVoisins());
-								if(voisin.getVoisins().size()>5)
-									voisin.getVoisins().remove(5);
+								if(voisin.getVoisins().size()>nombreDeVoisins)
+									voisin.getVoisins().remove(nombreDeVoisins);
 							}
 						}
 					}
