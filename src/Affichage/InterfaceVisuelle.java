@@ -10,6 +10,7 @@ import javax.swing.*;
 import Arcs.Lien;
 import Arcs.Trajet;
 import Calcul.Logique;
+import Commun.Commun;
 import Noeuds.Agence;
 import Noeuds.Lieu;
 
@@ -223,7 +224,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 			
 			if(!trajet.getLieu().isAssocie()) {
 				trajet.getLieu().setAssocie(true);
-				prixTotal += 10000;
+				prixTotal += Commun.prixLieu;
 				lieuTotal ++;
 			}
 		}

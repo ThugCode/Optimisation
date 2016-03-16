@@ -19,6 +19,7 @@ public class LireFichiers {
 		String filePath = new File("").getAbsolutePath();
 		filePath += "/Fichiers/ListeAgences_100.txt";
 		
+		float nbPersonneTotal = 0;
 		Lien temp;
 		try {
 			BufferedReader buff = new BufferedReader(new FileReader(filePath));
@@ -37,6 +38,7 @@ public class LireFichiers {
 						nouvelleAgence.setLongitude(Float.parseFloat(parts[3]));
 						nouvelleAgence.setLatitude(Float.parseFloat(parts[4]));
 						nouvelleAgence.setNbpersonnes(Integer.parseInt(parts[5]));
+						nbPersonneTotal += nouvelleAgence.getNbpersonnes();
 						//System.out.println(nouvelleAgence);
 						liste.add(nouvelleAgence);
 						
@@ -66,6 +68,7 @@ public class LireFichiers {
 			}
 		} catch (IOException ioe) { System.out.println("Erreur IO --" + ioe.toString());}
 		
+		System.out.println("Personnes : "+nbPersonneTotal+" soit "+Math.round(nbPersonneTotal/60)+" lieux minimum");
 		return liste;
 	}
 
