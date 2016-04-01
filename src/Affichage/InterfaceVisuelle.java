@@ -289,7 +289,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == btn_hasard) {
 			logique.trajetAuHasard();
-			//logique.recuitSimule();
+			logique.recuitSimule();
 			carte.repaint();
 		} else if(e.getSource() == btn_pluspres) {
 			logique.trajetAuPlusPres();

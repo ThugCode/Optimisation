@@ -160,49 +160,50 @@ public class Logique {
 		
 		return listeGroupes;
 	}
-	/*
+	
 	public void recuitSimule() {
 		int temperature = 3;
 		int nbIterations = 100;
 		this.trajetBarycentre();
 		
 		for(int i = 0; i < nbIterations; i++) {
-			Lieu [] lieux = new Lieu [temperature];
-			Iterator<Entry<Lieu, ArrayList<Trajet>>> entries = this.lieuxChoisis.entrySet().iterator();
+			Lieu [] lieuxASupprimer = new Lieu [temperature];
 			for(int j = 0; j < temperature; j++) {
-				Entry e = (Entry) entries.next();
-				lieux[j] = (Lieu) e.getKey();
+				lieuxASupprimer[j] = lieux.get(j);
 			}
-			for(Entry<Lieu, ArrayList<Trajet>> entry : this.lieuxChoisis.entrySet()) {
-				int nbAgence = entry.getValue().size();
-				int maxAgences = this.lieuxChoisis.get(lieux[0]).size();
-				int indexMax = 0;
-				
-				for(int j = 1; j < temperature; j++) {
-					if(this.lieuxChoisis.get(lieux[j]).size() < maxAgences) {
-						maxAgences = this.lieuxChoisis.get(lieux[j]).size();
-						indexMax = j;
+			
+			for(Lieu lieu : lieux) {
+				if(lieu.isAssocie()) {
+					int nbAgence = lieu.getTrajets().size();
+					int maxAgences = lieuxASupprimer[0].getTrajets().size();
+					int indexMax = 0;
+
+					for(int j = 1; j < temperature; j++) {
+						if(lieuxASupprimer[j].getTrajets().size() < maxAgences) {
+							maxAgences = lieuxASupprimer[j].getTrajets().size();
+							indexMax = j;
+						}
 					}
-				}
-				
-				if(nbAgence < maxAgences){
-					lieux[indexMax] = entry.getKey();
+
+					if(nbAgence < maxAgences){
+						lieuxASupprimer[indexMax] = lieu;
+					}
 				}
 			}
 			
 			for(int j = 0; j < temperature; j++) {
-				ArrayList<Trajet> temp = this.lieuxChoisis.get(lieux[j]);
-				this.lieuxChoisis.remove(lieux[j]);
+				ArrayList<Trajet> temp = lieuxASupprimer[j].getTrajets();
+				lieuxASupprimer[j].setAssocie(false);
 				for(Trajet t : temp) {
 					Agence agence = t.getAgence();
-					Lieu lieuPlusProche = this.lieuLePlusProche(agence);
-					this.lieuxChoisis.get(lieuPlusProche).add(new Trajet(agence,lieuPlusProche));
+					Lieu lieuPlusProche = lieuLePlusProche(agence);
+					lieuPlusProche.getTrajets().add(new Trajet(agence,lieuPlusProche));
 				}
 			}
 			
 		}
 	}
-	*/
+	
 	private static float[] getBarycentre(ArrayList<Agence> agences) {
 		
 		float numerateurX = 0;
@@ -228,11 +229,13 @@ public class Logique {
 		Lieu best = null;
 		float min = Float.MAX_VALUE;
 		
-		for (Lieu l : lieux) {
-			temp.setLieu(l);
-			if(best == null || temp.getDistanceKm() < min) {
-				best = l;
-				min = temp.getDistanceKm();
+		for (Lieu lieu : lieux) {
+			if(lieu.isAssocie()) {
+				temp.setLieu(lieu);
+				if(best == null || temp.getDistanceKm() < min) {
+					best = lieu;
+					min = temp.getDistanceKm();
+				}
 			}
 		}
 		return best;
