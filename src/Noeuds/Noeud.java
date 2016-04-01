@@ -22,11 +22,11 @@ public class Noeud {
 	}
 
 	public int getLongitudeForMap(double facteur) {
-		return (int) (longitude*50*facteur+(260*facteur));
+		return (int) (longitude*42*facteur+(235*facteur));
 	}
 	
 	public int getLatitudeForMap(double facteur) {
-		return (int) (latitude*50*facteur-(2050*facteur));
+		return (int) (latitude*62*facteur-(2610*facteur));
 	}
 	
 	public int getId() {
