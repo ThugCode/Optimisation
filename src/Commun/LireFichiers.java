@@ -12,12 +12,10 @@ import Noeuds.Lieu;
 
 public class LireFichiers {
 
-	public static ArrayList<Agence> LireAgence() {
+	public static ArrayList<Agence> LireAgence(String filePath) {
 		int nombreDeVoisins = 10;
 		
 		ArrayList<Agence> liste = new ArrayList<Agence>();
-		String filePath = new File("").getAbsolutePath();
-		filePath += "/Fichiers/ListeAgences_100.txt";
 		
 		float nbPersonneTotal = 0;
 		Lien temp;
@@ -68,7 +66,7 @@ public class LireFichiers {
 			}
 		} catch (IOException ioe) { System.out.println("Erreur IO --" + ioe.toString());}
 		
-		System.out.println("Personnes : "+nbPersonneTotal+" soit "+Math.round(nbPersonneTotal/60)+" lieux minimum");
+		System.out.println("Personnes : "+nbPersonneTotal+" soit "+Math.round(nbPersonneTotal/Commun.MAX_PERSONNE)+" lieux minimum");
 		return liste;
 	}
 

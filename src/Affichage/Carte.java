@@ -9,7 +9,7 @@ import java.awt.*;
 class Carte extends JPanel {
 	private static final long serialVersionUID = 1L;
 	
-	private final int LARGEUR = 700;
+	private final int LARGEUR = 680;
 	private final int HAUTEUR = 600;
 	private InterfaceVisuelle affichage;
     

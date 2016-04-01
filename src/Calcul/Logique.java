@@ -1,10 +1,12 @@
 package Calcul;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 
 import Affichage.InterfaceVisuelle;
 import Arcs.Lien;
 import Arcs.Trajet;
+import Commun.Commun;
 import Commun.LireFichiers;
 import Noeuds.Agence;
 import Noeuds.Lieu;
@@ -22,12 +24,15 @@ public class Logique {
 	
 	public Logique(InterfaceVisuelle pAffichage)
 	{
+		
+		String filePath = new File("").getAbsolutePath();
+		filePath += "/Fichiers/ListeAgences_100.txt";
+		
     	affichage = pAffichage;
     	
     	lieux = LireFichiers.LireLieuxPossible();
-    	agences = LireFichiers.LireAgence();
+    	agences = LireFichiers.LireAgence(filePath);
     	trajets = new ArrayList<Trajet>();
-    	//trajetAuPlusPres();
 	}
 	
 	public void trajetAuHasard() {
@@ -113,7 +118,7 @@ public class Logique {
 		Agence voisinage;
 		ArrayList<Agence> groupeTemp = new ArrayList<Agence>();
 		
-		if(personnesGroupe[courant]+agence.getNbpersonnes() <= 60 && agence.getGroupe()==-1) {
+		if(personnesGroupe[courant]+agence.getNbpersonnes() <= Commun.MAX_PERSONNE && agence.getGroupe()==-1) {
 			listeGroupes.add(courant, groupeTemp);
 			groupeTemp.add(agence);
 			agence.setGroupe(courant);
@@ -121,10 +126,10 @@ public class Logique {
 			
 			for (Lien liens : agence.getVoisins()) {
 				voisinage = liens.getVoisin(agence);
-				if(personnesGroupe[courant]+voisinage.getNbpersonnes() <= 60 && voisinage.getGroupe()==-1) {
+				if(personnesGroupe[courant]+voisinage.getNbpersonnes() <= Commun.MAX_PERSONNE && voisinage.getGroupe()==-1) {
 					voisinage.setGroupe(courant);
 					groupeTemp.add(voisinage);
-					personnesGroupe[courant] = personnesGroupe[courant]+voisinage.getNbpersonnes();
+					personnesGroupe[courant] += voisinage.getNbpersonnes();
 					listeGroupes = recursifVoisin(listeGroupes, agence, courant);
 				}
 			}
@@ -163,5 +168,9 @@ public class Logique {
 	}
 	public ArrayList<Trajet> getTrajets() {
 		return trajets;
+	}
+	
+	public void setAgences(ArrayList<Agence> listes) {
+		this.agences = listes;
 	}
 }

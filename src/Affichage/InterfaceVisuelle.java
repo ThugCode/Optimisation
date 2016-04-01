@@ -4,13 +4,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.io.File;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Arcs.Lien;
 import Arcs.Trajet;
 import Calcul.Logique;
 import Commun.Commun;
+import Commun.LireFichiers;
 import Noeuds.Agence;
 import Noeuds.Lieu;
 
@@ -36,6 +39,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	private JButton btn_hasard;
 	private JButton btn_pluspres;
 	private JButton btn_barycentre;
+	private JButton btn_choixAgence;
 	private JCheckBox cb_trajet;
 	private JCheckBox cb_lieu;
 	private JCheckBox cb_agence;
@@ -43,6 +47,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	private JTextField txt_totalLieu;
 	private JTextField txt_totalDistance;
 	private JTextField txt_totalPrix;
+	private JTextField txt_nombreVoisinsAgences;
 
 	public InterfaceVisuelle() {
 		setSize(LARGEUR, HAUTEUR);
@@ -63,7 +68,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		pnl_control = new JPanel();
 		pnl_control.setBorder(BorderFactory.createLineBorder(Color.black));
-		pnl_control.setBounds(700, 0, 300, 600);
+		pnl_control.setBounds(680, 0, 320, 600);
 		pnl_control.setLayout(null);
 		add(pnl_control);
 		
@@ -72,17 +77,15 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	
 	private void afficherPanelDroite() {
 		
-		int height = 20;
+		int height = 10;
 		
-		cb_trajet = new JCheckBox("Afficher les trajets");
-	    cb_trajet.setSelected(true);
-	    cb_trajet.addItemListener(this);
-	    cb_trajet.setBounds(20, height, 240, 30);
-		pnl_control.add(cb_trajet);
+		JLabel lbl_line_noeuds = new JLabel("⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Noeuds ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯");
+		lbl_line_noeuds.setBounds(20, height, 280, 30);
+		pnl_control.add(lbl_line_noeuds);
 		
-		height += 30;
+		height += 20;
 		
-		cb_lieu = new JCheckBox("Afficher les lieux");
+		cb_lieu = new JCheckBox("<html>Afficher les lieux <font color=red>・</font></html>");
 		cb_lieu.setSelected(true);
 		cb_lieu.addItemListener(this);
 		cb_lieu.setBounds(20, height, 240, 30);
@@ -90,19 +93,48 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		height += 30;
 		
-		cb_agence = new JCheckBox("Afficher les agences");
+		cb_agence = new JCheckBox("Afficher les agences ●");
 		cb_agence.setSelected(true);
 	    cb_agence.addItemListener(this);
-	    cb_agence.setBounds(20, height, 240, 30);
+	    cb_agence.setBounds(20, height, 180, 30);
 		pnl_control.add(cb_agence);
+		
+		btn_choixAgence = new JButton("Choix agences");
+		btn_choixAgence.setBounds(190, height, 120, 30);
+		btn_choixAgence.addActionListener(this);
+		pnl_control.add(btn_choixAgence);
 		
 		height += 30;
 		
-		cb_liensAgence = new JCheckBox("Afficher les liens d'agences");
+		JLabel lbl_line_arcs = new JLabel("⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Arcs ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯");
+		lbl_line_arcs.setBounds(20, height, 280, 30);
+		pnl_control.add(lbl_line_arcs);
+		
+		height += 20;
+		
+		cb_liensAgence = new JCheckBox("<html>Afficher les liens d'agences <font color=blue>⎯⎯⎯⎯</font></html>");
 		cb_liensAgence.setSelected(true);
 		cb_liensAgence.addItemListener(this);
 		cb_liensAgence.setBounds(20, height, 240, 30);
 		pnl_control.add(cb_liensAgence);
+		
+		height += 30;
+		
+		JLabel lbl_nombreVoisinsAgences = new JLabel("Nombre de voisins d'une agence :");
+		lbl_nombreVoisinsAgences.setBounds(30, height, 250, 30);
+		pnl_control.add(lbl_nombreVoisinsAgences);
+		
+		txt_nombreVoisinsAgences = new JTextField("10");
+		txt_nombreVoisinsAgences.setBounds(260, height, 40, 30);
+		pnl_control.add(txt_nombreVoisinsAgences);
+		
+		height += 30;
+		
+		cb_trajet = new JCheckBox("Afficher les trajets ⎯⎯⎯⎯");
+	    cb_trajet.setSelected(true);
+	    cb_trajet.addItemListener(this);
+	    cb_trajet.setBounds(20, height, 240, 30);
+		pnl_control.add(cb_trajet);
 		
 		height += 40;
 		
@@ -188,7 +220,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 			if(afficherAgence)
 				g.fillOval(pointX1,pointY1,rayon,rayon);
 			
-			g.setColor(Color.green);
+			g.setColor(Color.blue);
 			for (Lien voisin : agence.getVoisins()) {
 				if(agence.equals(voisin.getLieu1())) {
 					pointX2 = voisin.getLieu2().getLongitudeForMap(facteur);
@@ -222,12 +254,13 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 			prixTotal += dist*trajet.getAgence().getNbpersonnes();
 			
 			trajet.getLieu().setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+trajet.getAgence().getNbpersonnes());
-			if(trajet.getLieu().getNbPersonneAssociees() > 60)
-				System.out.println("Au dela de 60 personnes pour le lieu " + trajet.getLieu().getNom());
+			if(trajet.getLieu().getNbPersonneAssociees() > Commun.MAX_PERSONNE)
+				System.out.println("Au dela de " + Commun.MAX_PERSONNE + " personnes pour le lieu " 
+						+ trajet.getLieu().getNom() + " (" + trajet.getLieu().getNbPersonneAssociees() + ")");
 			
 			if(!trajet.getLieu().isAssocie()) {
 				trajet.getLieu().setAssocie(true);
-				prixTotal += Commun.prixLieu;
+				prixTotal += Commun.PRIX_LIEU;
 				lieuTotal ++;
 			}
 		}
@@ -248,6 +281,18 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		} else if(e.getSource() == btn_barycentre) {
 			logique.trajetBarycentre();
 			carte.repaint();
+		} else if(e.getSource() == btn_choixAgence) {
+			
+			File file = new File("Fichiers");
+			file = new File(file.getAbsolutePath());
+			JFileChooser chooser = new JFileChooser();
+			chooser.setCurrentDirectory(file);
+		    chooser.setFileFilter(new FileNameExtensionFilter("txt", "txt"));
+		    int returnVal = chooser.showOpenDialog(this);
+		    if(returnVal == JFileChooser.APPROVE_OPTION) {
+		    	logique.setAgences(LireFichiers.LireAgence(chooser.getSelectedFile().getPath()));
+		    	carte.repaint();
+		    }
 		}
 	}
 	
