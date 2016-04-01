@@ -1,6 +1,9 @@
 package Calcul;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
 import Affichage.InterfaceVisuelle;
 import Arcs.Lien;
@@ -17,7 +20,7 @@ public class Logique {
 	private InterfaceVisuelle affichage;
 	private ArrayList<Lieu> lieux;
 	private ArrayList<Agence> agences;
-	private ArrayList<Trajet> trajets;
+	private HashMap<Lieu, ArrayList<Trajet>> trajets;
 	private int[] personnesGroupe;
 	
 	public Logique(InterfaceVisuelle pAffichage)
@@ -26,46 +29,51 @@ public class Logique {
     	
     	lieux = LireFichiers.LireLieuxPossible();
     	agences = LireFichiers.LireAgence();
-    	trajets = new ArrayList<Trajet>();
+    	trajets = new HashMap<Lieu, ArrayList<Trajet>>();
     	//trajetAuPlusPres();
 	}
 	
 	public void trajetAuHasard() {
 		
 		int random;
-		trajets = new ArrayList<Trajet>();
+		trajets = new HashMap<Lieu, ArrayList<Trajet>>();
 		
 		for (Agence agence : agences) {
 			random = (int)(Math.random()*lieux.size());
-			trajets.add(new Trajet(agence, lieux.get(random)));
+			Lieu l = lieux.get(random);
+			
+			if(trajets.containsKey(l)) {
+				trajets.get(l).add(new Trajet(agence,l));
+			}
+			else {
+				ArrayList<Trajet> tmp = new ArrayList<Trajet>();	
+				tmp.add(new Trajet(agence,l));
+				trajets.put(l,tmp);
+			}
 		}
 	}
 
 	public void trajetAuPlusPres() {
 		
 		Lieu best;
-		float min;
-		Trajet temp = new Trajet();
-		trajets = new ArrayList<Trajet>();
+		trajets = new HashMap<Lieu, ArrayList<Trajet>>();
 		
 		for (Agence agence : agences) {
-			temp.setAgence(agence);
-			best = null;
-			min = Float.MAX_VALUE;
-			for (Lieu lieu : lieux) {
-				temp.setLieu(lieu);
-				if(best == null || temp.getDistanceKm() < min) {
-					best = lieu;
-					min = temp.getDistanceKm();
-				}
+			best = lieuLePlusProche(agence);
+			if(trajets.containsKey(best)) {
+				trajets.get(best).add(new Trajet(agence,best));
 			}
-			trajets.add(new Trajet(agence, best));
+			else {
+				ArrayList<Trajet> tmp = new ArrayList<Trajet>();	
+				tmp.add(new Trajet(agence,best));
+				trajets.put(best,tmp);
+			}
 		}
 	}
 	
 	public void trajetBarycentre() {
 		
-		trajets = new ArrayList<Trajet>();
+		trajets = new HashMap<Lieu, ArrayList<Trajet>>();
 		for (Agence agence : agences) {
 			agence.setGroupe(-1);
 		}
@@ -104,7 +112,14 @@ public class Logique {
 			}
 			
 			for (Agence agen : groupe) {
-				trajets.add(new Trajet(agen, best));
+				if(trajets.containsKey(best)) {
+					trajets.get(best).add(new Trajet(agen,best));
+				}
+				else {
+					ArrayList<Trajet> tmp = new ArrayList<Trajet>();	
+					tmp.add(new Trajet(agen,best));
+					trajets.put(best,tmp);
+				}
 			}
 		}
 	}
@@ -133,6 +148,48 @@ public class Logique {
 		return listeGroupes;
 	}
 	
+	public void recuitSimule() {
+		int temperature = 3;
+		int nbIterations = 100;
+		this.trajetBarycentre();
+		
+		for(int i = 0; i < nbIterations; i++) {
+			Lieu [] lieux = new Lieu [temperature];
+			Iterator<Entry<Lieu, ArrayList<Trajet>>> entries = this.trajets.entrySet().iterator();
+			for(int j = 0; j < temperature; j++) {
+				Entry e = (Entry) entries.next();
+				lieux[j] = (Lieu) e.getKey();
+			}
+			for(Entry<Lieu, ArrayList<Trajet>> entry : this.trajets.entrySet()) {
+				int nbAgence = entry.getValue().size();
+				int maxAgences = this.trajets.get(lieux[0]).size();
+				int indexMax = 0;
+				
+				for(int j = 1; j < temperature; j++) {
+					if(this.trajets.get(lieux[j]).size() < maxAgences) {
+						maxAgences = this.trajets.get(lieux[j]).size();
+						indexMax = j;
+					}
+				}
+				
+				if(nbAgence < maxAgences){
+					lieux[indexMax] = entry.getKey();
+				}
+			}
+			
+			for(int j = 0; j < temperature; j++) {
+				ArrayList<Trajet> temp = this.trajets.get(lieux[j]);
+				this.trajets.remove(lieux[j]);
+				for(Trajet t : temp) {
+					Agence agence = t.getAgence();
+					Lieu lieuPlusProche = this.lieuLePlusProche(agence);
+					this.trajets.get(lieuPlusProche).add(new Trajet(agence,lieuPlusProche));
+				}
+			}
+			
+		}
+	}
+	
 	private static float[] getBarycentre(ArrayList<Agence> agences) {
 		
 		float numerateurX = 0;
@@ -152,6 +209,22 @@ public class Logique {
 		return new float[] { x, y };
 	}
 	
+	private Lieu lieuLePlusProche(Agence agence) {
+		Trajet temp = new Trajet();
+		temp.setAgence(agence);
+		Lieu best = null;
+		float min = Float.MAX_VALUE;
+		
+		for (Lieu lieu : this.lieux) {
+			temp.setLieu(lieu);
+			if(best == null || temp.getDistanceKm() < min) {
+				best = lieu;
+				min = temp.getDistanceKm();
+			}
+		}
+		return best;
+	}
+	
 	public InterfaceVisuelle getAffichage() {
 		return affichage;
 	}
@@ -161,7 +234,7 @@ public class Logique {
 	public ArrayList<Agence> getAgences() {
 		return agences;
 	}
-	public ArrayList<Trajet> getTrajets() {
+	public HashMap<Lieu, ArrayList<Trajet>> getTrajets() {
 		return trajets;
 	}
 }

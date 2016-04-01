@@ -1,11 +1,20 @@
 package Affichage;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.ArrayList;
+import java.util.Map.Entry;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import Arcs.Lien;
 import Arcs.Trajet;
@@ -205,27 +214,30 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		float distanceTotal = 0;
 		float prixTotal = 0;
 		int lieuTotal = 0;
-		for (Trajet trajet : logique.getTrajets()) {
-			pointX1 = basX - trajet.getAgence().getLongitudeForMap(facteur);
-			pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
-			pointX2 = basX - trajet.getLieu().getLongitudeForMap(facteur);
-			pointY2 = basY - trajet.getLieu().getLatitudeForMap(facteur);
-			
-			if(afficherTrajet)
-				g.drawLine(pointX1,pointY1,pointX2,pointY2);
-			
-			dist = trajet.getDistanceKm();
-			distanceTotal += dist;
-			prixTotal += dist*trajet.getAgence().getNbpersonnes();
-			
-			trajet.getLieu().setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+trajet.getAgence().getNbpersonnes());
-			if(trajet.getLieu().getNbPersonneAssociees() > 60)
-				System.out.println("Au dela de 60 personnes pour le lieu " + trajet.getLieu().getNom());
-			
-			if(!trajet.getLieu().isAssocie()) {
-				trajet.getLieu().setAssocie(true);
-				prixTotal += Commun.prixLieu;
-				lieuTotal ++;
+		for(Entry<Lieu, ArrayList<Trajet>> entry : logique.getTrajets().entrySet()) {
+			for(Trajet trajet : entry.getValue()) {
+				
+				pointX1 = basX - trajet.getAgence().getLongitudeForMap(facteur);
+				pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
+				pointX2 = basX - trajet.getLieu().getLongitudeForMap(facteur);
+				pointY2 = basY - trajet.getLieu().getLatitudeForMap(facteur);
+
+				if(afficherTrajet)
+					g.drawLine(pointX1,pointY1,pointX2,pointY2);
+
+				dist = trajet.getDistanceKm();
+				distanceTotal += dist;
+				prixTotal += dist*trajet.getAgence().getNbpersonnes();
+
+				trajet.getLieu().setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+trajet.getAgence().getNbpersonnes());
+				if(trajet.getLieu().getNbPersonneAssociees() > 60)
+					System.out.println("Au dela de 60 personnes pour le lieu " + trajet.getLieu().getNom());
+
+				if(!trajet.getLieu().isAssocie()) {
+					trajet.getLieu().setAssocie(true);
+					prixTotal += Commun.prixLieu;
+					lieuTotal ++;
+				}
 			}
 		}
 		
@@ -238,6 +250,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == btn_hasard) {
 			logique.trajetAuHasard();
+			logique.recuitSimule();
 			carte.repaint();
 		} else if(e.getSource() == btn_pluspres) {
 			logique.trajetAuPlusPres();
