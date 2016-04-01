@@ -159,9 +159,12 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 
 	public void dessinerCarte(Graphics2D g) {
 		
+		Image image = new ImageIcon("Fichiers/maFrance.png").getImage();
+		g.drawImage(image, 0, 0, this);
+		
 		int pointX1, pointX2, pointY1, pointY2, rayon;
 
-		int basX = (int)(700*facteur);
+		//int basX = (int)(700*facteur);
 		int basY = (int)(570*facteur);
 		g.scale(1/facteur, 1/facteur);
 		
@@ -170,7 +173,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		for (Lieu lieu : logique.getLieux()) {
 			lieu.reset();
 			
-			pointX1 = basX - lieu.getLongitudeForMap(facteur);
+			pointX1 = lieu.getLongitudeForMap(facteur);
 			pointY1 = basY - lieu.getLatitudeForMap(facteur);
 			if(afficherLieu)
 				g.fillOval(pointX1,pointY1,rayon,rayon);
@@ -179,7 +182,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		rayon = (int)(3*facteur);
 		for (Agence agence : logique.getAgences()) {
-			pointX1 = basX - agence.getLongitudeForMap(facteur);
+			pointX1 = agence.getLongitudeForMap(facteur);
 			pointY1 = basY - agence.getLatitudeForMap(facteur);
 			g.setColor(Color.black);
 			if(afficherAgence)
@@ -188,10 +191,10 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 			g.setColor(Color.green);
 			for (Lien voisin : agence.getVoisins()) {
 				if(agence.equals(voisin.getLieu1())) {
-					pointX2 = basX - voisin.getLieu2().getLongitudeForMap(facteur);
+					pointX2 = voisin.getLieu2().getLongitudeForMap(facteur);
 					pointY2 = basY - voisin.getLieu2().getLatitudeForMap(facteur);
 				} else {
-					pointX2 = basX - voisin.getLieu1().getLongitudeForMap(facteur);
+					pointX2 = voisin.getLieu1().getLongitudeForMap(facteur);
 					pointY2 = basY - voisin.getLieu1().getLatitudeForMap(facteur);
 				}
 				if(afficherLienAgence)
@@ -206,9 +209,9 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		float prixTotal = 0;
 		int lieuTotal = 0;
 		for (Trajet trajet : logique.getTrajets()) {
-			pointX1 = basX - trajet.getAgence().getLongitudeForMap(facteur);
+			pointX1 = trajet.getAgence().getLongitudeForMap(facteur);
 			pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
-			pointX2 = basX - trajet.getLieu().getLongitudeForMap(facteur);
+			pointX2 = trajet.getLieu().getLongitudeForMap(facteur);
 			pointY2 = basY - trajet.getLieu().getLatitudeForMap(facteur);
 			
 			if(afficherTrajet)
