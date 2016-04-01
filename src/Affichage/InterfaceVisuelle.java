@@ -256,12 +256,12 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		float prixTotal = 0;
 		int lieuTotal = 0;
 
-		for (Trajet trajet : logique.getTrajets()) {
+		for(Trajet trajet : logique.getTrajets()) {
 			pointX1 = trajet.getAgence().getLongitudeForMap(facteur);
 			pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
 			pointX2 = trajet.getLieu().getLongitudeForMap(facteur);
 			pointY2 = basY - trajet.getLieu().getLatitudeForMap(facteur);
-			
+
 			if(afficherTrajet)
 				g.drawLine(pointX1,pointY1,pointX2,pointY2);
 			
@@ -289,7 +289,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == btn_hasard) {
 			logique.trajetAuHasard();
-			logique.recuitSimule();
+			//logique.recuitSimule();
 			carte.repaint();
 		} else if(e.getSource() == btn_pluspres) {
 			logique.trajetAuPlusPres();
