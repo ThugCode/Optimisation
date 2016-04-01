@@ -220,30 +220,28 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		float prixTotal = 0;
 		int lieuTotal = 0;
 
-		for(Entry<Lieu, ArrayList<Trajet>> entry : logique.getTrajets().entrySet()) {
-			for(Trajet trajet : entry.getValue()) {
+		for(Trajet trajet : logique.getTrajets()) {
 
-				pointX1 = trajet.getAgence().getLongitudeForMap(facteur);
-				pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
-				pointX2 = trajet.getLieu().getLongitudeForMap(facteur);
-				pointY2 = basY - trajet.getLieu().getLatitudeForMap(facteur);
+			pointX1 = trajet.getAgence().getLongitudeForMap(facteur);
+			pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
+			pointX2 = trajet.getLieu().getLongitudeForMap(facteur);
+			pointY2 = basY - trajet.getLieu().getLatitudeForMap(facteur);
 
-				if(afficherTrajet)
-					g.drawLine(pointX1,pointY1,pointX2,pointY2);
+			if(afficherTrajet)
+				g.drawLine(pointX1,pointY1,pointX2,pointY2);
 
-				dist = trajet.getDistanceKm();
-				distanceTotal += dist;
-				prixTotal += dist*trajet.getAgence().getNbpersonnes();
+			dist = trajet.getDistanceKm();
+			distanceTotal += dist;
+			prixTotal += dist*trajet.getAgence().getNbpersonnes();
 
-				trajet.getLieu().setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+trajet.getAgence().getNbpersonnes());
-				if(trajet.getLieu().getNbPersonneAssociees() > 60)
-					System.out.println("Au dela de 60 personnes pour le lieu " + trajet.getLieu().getNom());
+			trajet.getLieu().setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+trajet.getAgence().getNbpersonnes());
+			if(trajet.getLieu().getNbPersonneAssociees() > 60)
+				System.out.println("Au dela de 60 personnes pour le lieu " + trajet.getLieu().getNom());
 
-				if(!trajet.getLieu().isAssocie()) {
-					trajet.getLieu().setAssocie(true);
-					prixTotal += Commun.prixLieu;
-					lieuTotal ++;
-				}
+			if(!trajet.getLieu().isAssocie()) {
+				trajet.getLieu().setAssocie(true);
+				prixTotal += Commun.prixLieu;
+				lieuTotal ++;
 			}
 		}
 		txt_totalDistance.setText(distanceTotal+"");
@@ -255,7 +253,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == btn_hasard) {
 			logique.trajetAuHasard();
-			logique.recuitSimule();
+			//logique.recuitSimule();
 			carte.repaint();
 		} else if(e.getSource() == btn_pluspres) {
 			logique.trajetAuPlusPres();
