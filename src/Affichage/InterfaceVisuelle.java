@@ -1,13 +1,28 @@
 package Affichage;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+
 import java.io.File;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
+
+import java.util.ArrayList;
+import java.util.Map.Entry;
+
+import javax.swing.BorderFactory;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
 
 import Arcs.Lien;
 import Arcs.Trajet;
@@ -240,6 +255,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		float distanceTotal = 0;
 		float prixTotal = 0;
 		int lieuTotal = 0;
+
 		for (Trajet trajet : logique.getTrajets()) {
 			pointX1 = trajet.getAgence().getLongitudeForMap(facteur);
 			pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
@@ -264,7 +280,6 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 				lieuTotal ++;
 			}
 		}
-		
 		txt_totalDistance.setText(distanceTotal+"");
 		txt_totalPrix.setText(prixTotal+"");
 		txt_totalLieu.setText(lieuTotal+"");
@@ -274,6 +289,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == btn_hasard) {
 			logique.trajetAuHasard();
+			logique.recuitSimule();
 			carte.repaint();
 		} else if(e.getSource() == btn_pluspres) {
 			logique.trajetAuPlusPres();
