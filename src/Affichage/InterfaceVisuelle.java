@@ -12,9 +12,6 @@ import java.io.File;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import java.util.ArrayList;
-import java.util.Map.Entry;
-
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -27,7 +24,6 @@ import javax.swing.JTextField;
 import Arcs.Lien;
 import Arcs.Trajet;
 import Calcul.Logique;
-import Commun.Commun;
 import Commun.LireFichiers;
 import Noeuds.Agence;
 import Noeuds.Lieu;
@@ -215,47 +211,55 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		int basY = (int)(570*facteur);
 		g.scale(1/facteur, 1/facteur);
 		
-		g.setColor(Color.red);
-		rayon = (int)(1.7*facteur);
-		for (Lieu lieu : logique.getLieux()) {
-			lieu.reset();
-			
-			pointX1 = lieu.getLongitudeForMap(facteur);
-			pointY1 = basY - lieu.getLatitudeForMap(facteur);
-			if(afficherLieu)
+		
+		//Affichage des lieux
+		if(afficherLieu) {
+			g.setColor(Color.red);
+			rayon = (int)(1.7*facteur);
+			for (Lieu lieu : logique.getLieux()) {
+				pointX1 = lieu.getLongitudeForMap(facteur);
+				pointY1 = basY - lieu.getLatitudeForMap(facteur);
 				g.fillOval(pointX1,pointY1,rayon,rayon);
+			}
 		}
 		
+		//Affichage des barycentres
+		rayon = (int)(4*facteur);
+		g.setColor(Color.orange);
+		for (Agence agence : logique.barycentres) {
+			pointX1 = agence.getLongitudeForMap(facteur);
+			pointY1 = basY - agence.getLatitudeForMap(facteur);
+			g.fillOval(pointX1,pointY1,rayon,rayon);
+		}
 		
+		//Affichage des agences
 		rayon = (int)(3*facteur);
 		for (Agence agence : logique.getAgences()) {
 			pointX1 = agence.getLongitudeForMap(facteur);
 			pointY1 = basY - agence.getLatitudeForMap(facteur);
-			g.setColor(Color.black);
-			if(afficherAgence)
+			if(afficherAgence) {
+				g.setColor(Color.black);
 				g.fillOval(pointX1,pointY1,rayon,rayon);
+			}
 			
-			g.setColor(Color.blue);
-			for (Lien voisin : agence.getVoisins()) {
-				if(agence.equals(voisin.getLieu1())) {
-					pointX2 = voisin.getLieu2().getLongitudeForMap(facteur);
-					pointY2 = basY - voisin.getLieu2().getLatitudeForMap(facteur);
-				} else {
-					pointX2 = voisin.getLieu1().getLongitudeForMap(facteur);
-					pointY2 = basY - voisin.getLieu1().getLatitudeForMap(facteur);
-				}
-				if(afficherLienAgence)
+			//Affichage des liens d'agences
+			if(afficherLienAgence) {
+				g.setColor(Color.blue);
+				for (Lien voisin : agence.getVoisins()) {
+					if(agence.equals(voisin.getLieu1())) {
+						pointX2 = voisin.getLieu2().getLongitudeForMap(facteur);
+						pointY2 = basY - voisin.getLieu2().getLatitudeForMap(facteur);
+					} else {
+						pointX2 = voisin.getLieu1().getLongitudeForMap(facteur);
+						pointY2 = basY - voisin.getLieu1().getLatitudeForMap(facteur);
+					}
 					g.drawLine(pointX1,pointY1,pointX2,pointY2);
+				}
 			}
 		}
 		
+		//Affichage des trajets
 		g.setColor(Color.black);
-		
-		float dist = 0;
-		float distanceTotal = 0;
-		float prixTotal = 0;
-		int lieuTotal = 0;
-
 		for(Trajet trajet : logique.getTrajets()) {
 			pointX1 = trajet.getAgence().getLongitudeForMap(facteur);
 			pointY1 = basY - trajet.getAgence().getLatitudeForMap(facteur);
@@ -264,25 +268,11 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 
 			if(afficherTrajet)
 				g.drawLine(pointX1,pointY1,pointX2,pointY2);
-			
-			dist = trajet.getDistanceKm();
-			distanceTotal += dist;
-			prixTotal += dist*trajet.getAgence().getNbpersonnes();
-			
-			trajet.getLieu().setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+trajet.getAgence().getNbpersonnes());
-			if(trajet.getLieu().getNbPersonneAssociees() > Commun.MAX_PERSONNE)
-				System.out.println("Au dela de " + Commun.MAX_PERSONNE + " personnes pour le lieu " 
-						+ trajet.getLieu().getNom() + " (" + trajet.getLieu().getNbPersonneAssociees() + ")");
-			
-			if(!trajet.getLieu().isAssocie()) {
-				trajet.getLieu().setAssocie(true);
-				prixTotal += Commun.PRIX_LIEU;
-				lieuTotal ++;
-			}
 		}
-		txt_totalDistance.setText(distanceTotal+"");
-		txt_totalPrix.setText(prixTotal+"");
-		txt_totalLieu.setText(lieuTotal+"");
+		
+		txt_totalDistance.setText(logique.getDistanceTotale()+"");
+		txt_totalPrix.setText(logique.getPrixTotal()+"");
+		txt_totalLieu.setText(logique.getLieuTotal()+"");
 	}
 
 	@Override
