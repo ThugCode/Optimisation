@@ -6,20 +6,20 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-
 import java.io.File;
-
-import javax.swing.*;
-import javax.swing.filechooser.FileNameExtensionFilter;
+import java.util.Observable;
+import java.util.Observer;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Arcs.Lien;
 import Arcs.Trajet;
@@ -31,7 +31,7 @@ import Noeuds.Lieu;
 /*
  * Classe d'affichage de l'interface
  */
-public class InterfaceVisuelle extends JFrame implements ActionListener, ItemListener {
+public class InterfaceVisuelle extends JFrame implements ActionListener, ItemListener, Observer {
 	private static final long serialVersionUID = 1L;
 	
 	private final int LARGEUR = 1000;
@@ -50,6 +50,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	private JButton btn_hasard;
 	private JButton btn_pluspres;
 	private JButton btn_barycentre;
+	private JButton btn_recuit;
 	private JButton btn_choixAgence;
 	private JCheckBox cb_trajet;
 	private JCheckBox cb_lieu;
@@ -74,6 +75,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		afficherLienAgence = true;
 		
 		logique = new Logique(this);
+		logique.addObserver(this);
 		carte = new Carte(this);
 		add(carte);
 		
@@ -166,8 +168,13 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		btn_barycentre.addActionListener(this);
 		pnl_control.add(btn_barycentre);
 		
-		height += 60;
+		btn_recuit = new JButton("Test recuit");
+		btn_recuit.setBounds(160, height, 120, 50);
+		btn_recuit.addActionListener(this);
+		pnl_control.add(btn_recuit);
 		
+		height += 60;
+				
 		JLabel lbl_totalLieu = new JLabel("Lieux utilisés :");
 		lbl_totalLieu.setBounds(20, height, 120, 30);
 		pnl_control.add(lbl_totalLieu);
@@ -279,7 +286,6 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	public void actionPerformed(ActionEvent e) {
 		if(e.getSource() == btn_hasard) {
 			logique.trajetAuHasard();
-			logique.recuitSimule();
 			carte.repaint();
 		} else if(e.getSource() == btn_pluspres) {
 			logique.trajetAuPlusPres();
@@ -287,6 +293,10 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		} else if(e.getSource() == btn_barycentre) {
 			logique.trajetBarycentre();
 			carte.repaint();
+		} else if(e.getSource() == btn_recuit) {
+			logique.recuitSimule();
+			carte.repaint();
+			System.out.println("Prix meilleure solution: " + logique.getPrixTotal());
 		} else if(e.getSource() == btn_choixAgence) {
 			
 			File file = new File("Fichiers");
@@ -319,5 +329,10 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	    
 	    //if (e.getStateChange() == ItemEvent.DESELECTED)
 	        //...make a note of it...
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		carte.repaint();
 	}
 }
