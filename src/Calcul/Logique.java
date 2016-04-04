@@ -21,7 +21,7 @@ public class Logique extends Observable{
 	private InterfaceVisuelle affichage;
 	private ArrayList<Lieu> lieux;
 	private ArrayList<Agence> agences;
-	public ArrayList<Agence> barycentres;
+	private ArrayList<Agence> barycentres;
 	private ArrayList<Trajet> trajets;
 	
 	private float distanceTotale;
@@ -56,15 +56,14 @@ public class Logique extends Observable{
 		
 		for (Agence agence : agences) {
 			random = (int)(Math.random()*lieux.size());
-			Lieu l = lieux.get(random);
+			Lieu lieu = lieux.get(random);
 			
-			if(!l.isAssocie()) {
-				l.setAssocie(true);
-			} 
-			Trajet t = new Trajet(agence, l);
-			l.getTrajets().add(t);
-			agence.getTrajets().add(t);
-			trajets.add(t);
+			lieu.setAssocie(true);
+			
+			Trajet trajet = new Trajet(agence, lieu);
+			lieu.getTrajets().add(trajet);
+			agence.getTrajets().add(trajet);
+			trajets.add(trajet);
 		}
 	}
 
@@ -86,13 +85,13 @@ public class Logique extends Observable{
 					min = temp.getDistanceKm();
 				}
 			}
-			if(!best.isAssocie()) {
-				best.setAssocie(true);
-			} 
-			Trajet t = new Trajet(agence, best);
-			best.getTrajets().add(t);
-			agence.getTrajets().add(t);
-			trajets.add(t);
+			
+			best.setAssocie(true);
+			
+			Trajet trajet = new Trajet(agence, best);
+			best.getTrajets().add(trajet);
+			agence.getTrajets().add(trajet);
+			trajets.add(trajet);
 		}
 	}
 	
@@ -114,6 +113,10 @@ public class Logique extends Observable{
 		//Suppression des groupes pour toutes les agences
 		for (Agence agence : agences) {
 			agence.setGroupe(-1);
+		}
+		//Désassociation des lieux
+		for (Lieu lieu : lieux) {
+			lieu.reset();
 		}
 		
 		//Mélange de la liste des agences pour que le récursif
@@ -252,7 +255,7 @@ public class Logique extends Observable{
 		ArrayList<Trajet> meilleureSolution = trajets;
 		float meilleurPrix = prixTotal;
 		
-		System.out.println("Prix première solution : " + meilleurPrix);
+		System.out.println("Prix solution 1 : " + meilleurPrix);
 		
 		for(int i = 0; i < nbIterations; i++) {
 			//Tableau des lieux à supprimer (car lié avec le moins d'agences)
@@ -285,6 +288,7 @@ public class Logique extends Observable{
 			for(int j = 0; j < temperature; j++) {
 				ArrayList<Trajet> temp = lieuxASupprimer[j].getTrajets();
 				lieuxASupprimer[j].setAssocie(false);
+				prixTotal -= Commun.PRIX_LIEU;
 				for(Trajet t : temp) {
 					trajets.remove(t);
 					
@@ -293,7 +297,6 @@ public class Logique extends Observable{
 					lieuPersonne = t.getLieu().getNbPersonneAssociees();
 					
 					distanceTotale -= distance;
-					prixTotal -= Commun.PRIX_LIEU;
 					prixTotal -= distance*agencePersonne;
 					
 					Agence agence = t.getAgence();
@@ -323,6 +326,9 @@ public class Logique extends Observable{
 				meilleureSolution = trajets;
 				meilleurPrix = prixTotal;
 			}
+			
+			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
+			
 			setChanged();
 			notifyObservers();
 		}
@@ -376,6 +382,10 @@ public class Logique extends Observable{
 	public ArrayList<Agence> getAgences() {
 		return agences;
 	}
+	public ArrayList<Agence> getBarycentres() {
+		return barycentres;
+	}
+
 	public ArrayList<Trajet> getTrajets() {
 		return trajets;
 	}

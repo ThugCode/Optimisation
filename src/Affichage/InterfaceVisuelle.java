@@ -92,7 +92,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		int height = 10;
 		
-		JLabel lbl_line_noeuds = new JLabel("⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Noeuds ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯");
+		JLabel lbl_line_noeuds = new JLabel("Noeuds");
 		lbl_line_noeuds.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_noeuds);
 		
@@ -119,13 +119,13 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		height += 30;
 		
-		JLabel lbl_line_arcs = new JLabel("⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯ Arcs ⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯");
+		JLabel lbl_line_arcs = new JLabel("Arcs");
 		lbl_line_arcs.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_arcs);
 		
 		height += 20;
 		
-		cb_liensAgence = new JCheckBox("<html>Afficher les liens d'agences <font color=blue>⎯⎯⎯⎯</font></html>");
+		cb_liensAgence = new JCheckBox("<html>Afficher les liens d'agences <font color=blue>---</font></html>");
 		cb_liensAgence.setSelected(true);
 		cb_liensAgence.addItemListener(this);
 		cb_liensAgence.setBounds(20, height, 240, 30);
@@ -143,7 +143,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		height += 30;
 		
-		cb_trajet = new JCheckBox("Afficher les trajets ⎯⎯⎯⎯");
+		cb_trajet = new JCheckBox("Afficher les trajets ---");
 	    cb_trajet.setSelected(true);
 	    cb_trajet.addItemListener(this);
 	    cb_trajet.setBounds(20, height, 240, 30);
@@ -233,9 +233,9 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		//Affichage des barycentres
 		rayon = (int)(4*facteur);
 		g.setColor(Color.orange);
-		for (Agence agence : logique.barycentres) {
-			pointX1 = agence.getLongitudeForMap(facteur);
-			pointY1 = basY - agence.getLatitudeForMap(facteur);
+		for (Agence barycentre : logique.getBarycentres()) {
+			pointX1 = barycentre.getLongitudeForMap(facteur);
+			pointY1 = basY - barycentre.getLatitudeForMap(facteur);
 			g.fillOval(pointX1,pointY1,rayon,rayon);
 		}
 		
