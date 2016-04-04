@@ -306,7 +306,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		    chooser.setFileFilter(new FileNameExtensionFilter("txt", "txt"));
 		    int returnVal = chooser.showOpenDialog(this);
 		    if(returnVal == JFileChooser.APPROVE_OPTION) {
-		    	logique.setAgences(LireFichiers.LireAgence(chooser.getSelectedFile().getPath()));
+		    	logique.setAgences(LireFichiers.LireAgence(chooser.getSelectedFile().getPath(), Integer.parseInt(txt_nombreVoisinsAgences.getText())));
 		    	carte.repaint();
 		    }
 		}

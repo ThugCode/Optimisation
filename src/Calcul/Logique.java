@@ -35,7 +35,7 @@ public class Logique extends Observable{
 		String filePath = new File("").getAbsolutePath();
 		filePath += "/Fichiers/ListeAgences_100.txt";
 		
-    	agences = LireFichiers.LireAgence(filePath);
+    	agences = LireFichiers.LireAgence(filePath, 10);
     	lieux = LireFichiers.LireLieuxPossible();
     	resetTrajets();
 	}

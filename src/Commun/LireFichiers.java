@@ -12,8 +12,7 @@ import Noeuds.Lieu;
 
 public class LireFichiers {
 
-	public static ArrayList<Agence> LireAgence(String filePath) {
-		int nombreDeVoisins = 10;
+	public static ArrayList<Agence> LireAgence(String filePath, int nombreDeVoisins) {
 		
 		ArrayList<Agence> liste = new ArrayList<Agence>();
 		
