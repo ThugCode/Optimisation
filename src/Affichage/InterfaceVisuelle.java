@@ -7,8 +7,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.File;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -31,7 +31,7 @@ import Noeuds.Lieu;
 /*
  * Classe d'affichage de l'interface
  */
-public class InterfaceVisuelle extends JFrame implements ActionListener, ItemListener, Observer {
+public class InterfaceVisuelle extends JFrame implements ActionListener, ItemListener {
 	private static final long serialVersionUID = 1L;
 	
 	private final int LARGEUR = 1000;
@@ -75,7 +75,6 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		afficherLienAgence = true;
 		
 		logique = new Logique(this);
-		logique.addObserver(this);
 		carte = new Carte(this);
 		add(carte);
 		
@@ -291,8 +290,18 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 			logique.trajetAuPlusPres();
 			carte.repaint();
 		} else if(e.getSource() == btn_barycentre) {
-			logique.trajetBarycentre();
-			carte.repaint();
+			//logique.trajetBarycentre();
+			
+			Thread t1 = new Thread(new Runnable() {
+			     public void run() {
+			    	 //logique.recuitBarycentre();
+			    	 logique.temperatureBarycentre();
+			     }
+			});  
+			t1.start();
+			
+			//carte.repaint();
+			
 		} else if(e.getSource() == btn_recuit) {
 			logique.recuitSimule();
 			carte.repaint();
@@ -331,8 +340,8 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	        //...make a note of it...
 	}
 
-	@Override
-	public void update(Observable o, Object arg) {
+	public void update() {
 		carte.repaint();
+		this.repaint();
 	}
 }

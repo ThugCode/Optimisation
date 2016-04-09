@@ -8,15 +8,16 @@ import java.util.Collections;
 
 import Arcs.Lien;
 import Noeuds.Agence;
+import Noeuds.GroupeAgence;
 import Noeuds.Lieu;
 
 public class LireFichiers {
 
-	public static ArrayList<Agence> LireAgence(String filePath, int nombreDeVoisins) {
+	public static GroupeAgence LireAgence(String filePath, int nombreDeVoisins) {
 		
-		ArrayList<Agence> liste = new ArrayList<Agence>();
+		GroupeAgence liste = new GroupeAgence();
 		
-		float nbPersonneTotal = 0;
+		int nbPersonneTotal = 0;
 		Lien temp;
 		try {
 			BufferedReader buff = new BufferedReader(new FileReader(filePath));
@@ -36,7 +37,6 @@ public class LireFichiers {
 						nouvelleAgence.setLatitude(Float.parseFloat(parts[4]));
 						nouvelleAgence.setNbpersonnes(Integer.parseInt(parts[5]));
 						nbPersonneTotal += nouvelleAgence.getNbpersonnes();
-						//System.out.println(nouvelleAgence);
 						liste.add(nouvelleAgence);
 						
 						for(Agence voisin : liste) {
@@ -65,7 +65,8 @@ public class LireFichiers {
 			}
 		} catch (IOException ioe) { System.out.println("Erreur IO --" + ioe.toString());}
 		
-		System.out.println("Personnes : "+nbPersonneTotal+" soit "+Math.round(nbPersonneTotal/Commun.MAX_PERSONNE)+" lieux minimum");
+		liste.setNombrePersonne(nbPersonneTotal);
+		
 		return liste;
 	}
 

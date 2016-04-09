@@ -13,6 +13,10 @@ public class GroupeAgence extends ArrayList<Agence> {
 		setNumero(0);
 		setNombrePersonne(0);
 	}
+	
+	public int nombreLieuxMinimum() {
+		return (int) Math.ceil((double)nombrePersonne/60);
+	}
 
 	public int getNumero() {
 		return numero;

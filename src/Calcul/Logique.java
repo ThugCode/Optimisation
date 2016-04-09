@@ -2,7 +2,9 @@ package Calcul;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Observable;
+import java.util.Random;
+
+import javax.swing.JOptionPane;
 
 import Affichage.InterfaceVisuelle;
 import Arcs.Lien;
@@ -16,17 +18,19 @@ import Noeuds.Lieu;
 /*
  * Classe d'application des algorithmes
  */
-public class Logique extends Observable{
+public class Logique extends Thread {
 
 	private InterfaceVisuelle affichage;
 	private ArrayList<Lieu> lieux;
-	private ArrayList<Agence> agences;
+	private GroupeAgence agences;
 	private ArrayList<Agence> barycentres;
 	private ArrayList<Trajet> trajets;
+	private int nbAgenceMin;
 	
 	private float distanceTotale;
 	private float prixTotal;
 	private int lieuTotal;
+	ArrayList<Trajet> meilleureSolution;
 	
 	public Logique(InterfaceVisuelle pAffichage)
 	{
@@ -47,6 +51,13 @@ public class Logique extends Observable{
 		distanceTotale = 0;
     	prixTotal = 0;
     	lieuTotal = 0;
+	}
+	
+
+	private void checkLieuPersonne(Lieu lieu) {
+		if(lieu.getNbPersonneAssociees() > Commun.MAX_PERSONNE)
+			System.out.println("Au dela de " + Commun.MAX_PERSONNE + " personnes pour le lieu " 
+					+ lieu.getNom() + " (" + lieu.getNbPersonneAssociees() + ")");
 	}
 	
 	public void trajetAuHasard() {
@@ -86,12 +97,20 @@ public class Logique extends Observable{
 				}
 			}
 			
-			best.setAssocie(true);
+			if(!best.isAssocie()) {
+				best.setAssocie(true);
+				prixTotal += Commun.PRIX_LIEU;
+				lieuTotal ++;
+			}
 			
 			Trajet trajet = new Trajet(agence, best);
 			best.getTrajets().add(trajet);
 			agence.getTrajets().add(trajet);
 			trajets.add(trajet);
+			
+			distanceTotale += trajet.getDistanceKm();
+			prixTotal += trajet.getDistanceKm()*agence.getNbpersonnes();
+			best.setNbPersonneAssociees(best.getNbPersonneAssociees()+agence.getNbpersonnes());
 		}
 	}
 	
@@ -186,9 +205,7 @@ public class Logique extends Observable{
 				prixTotal += distance*agencePersonne;
 				trajet.getLieu().setNbPersonneAssociees(lieuPersonne+agencePersonne);
 				
-				if(trajet.getLieu().getNbPersonneAssociees() > Commun.MAX_PERSONNE)
-					System.out.println("Au dela de " + Commun.MAX_PERSONNE + " personnes pour le lieu " 
-							+ trajet.getLieu().getNom() + " (" + trajet.getLieu().getNbPersonneAssociees() + ")");
+				checkLieuPersonne(trajet.getLieu());
 			}
 		}
 	}
@@ -244,82 +261,192 @@ public class Logique extends Observable{
 		return listeGroupes;
 	}
 	
-	public ArrayList<Trajet> recuitSimule() {
-		int temperature = 3;
-		int nbIterations = 100;
-		float distance;
-		int agencePersonne;
-		int lieuPersonne;
+	
+	public void temperatureBarycentre() {
 		
 		trajetBarycentre();
-		ArrayList<Trajet> meilleureSolution = trajets;
+		affichage.update();
+		
+		float bestPrix = prixTotal;
+		ArrayList<Trajet> bestSolution = trajets;
+		
+		System.out.println("Prix solution 1 : " + bestPrix);
+		
+		for(int i = 0; i < 100; i++) {
+			
+			trajetBarycentre();
+			
+			if(prixTotal < bestPrix){
+				bestSolution = trajets;
+				bestPrix = prixTotal;
+			}
+			
+			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
+
+			affichage.update();
+			
+			try { Thread.sleep(100);
+			} catch (InterruptedException e) {}
+		}
+		
+		JOptionPane.showMessageDialog(null, "La meilleure solution donne un prix de : "+bestPrix+" €");
+		
+		trajets = bestSolution;
+		prixTotal = bestPrix;
+		
+		affichage.update();
+	}
+	
+	
+	
+	public void recuitBarycentre() {
+		
+		float distance;
+		int agencePersonne;
+		int nbIterations = 100;
+		
+		trajetBarycentre();
+		affichage.update();
+		
+		Agence agenceADeplace = null;
 		float meilleurPrix = prixTotal;
+		
+		meilleureSolution = trajets;
 		
 		System.out.println("Prix solution 1 : " + meilleurPrix);
 		
 		for(int i = 0; i < nbIterations; i++) {
-			//Tableau des lieux à supprimer (car lié avec le moins d'agences)
-			Lieu [] lieuxASupprimer = new Lieu [temperature];
-			for(int j = 0; j < temperature; j++) {
-				lieuxASupprimer[j] = lieux.get(j);
+			
+			agenceADeplace = agences.get(new Random().nextInt(agences.size()));
+			
+			Trajet trajetEnTrop = agenceADeplace.getTrajets().get(0);
+			
+			trajets.remove(trajetEnTrop);
+			
+			distance = trajetEnTrop.getDistanceKm();
+			agencePersonne = trajetEnTrop.getAgence().getNbpersonnes();
+			
+			distanceTotale -= distance;
+			prixTotal -= distance*agencePersonne;
+			
+			Agence agence = trajetEnTrop.getAgence();
+			agence.getTrajets().clear();
+			
+			recursifBarycentre(agence);
+			
+			if(prixTotal < meilleurPrix){
+				meilleureSolution = trajets;
+				meilleurPrix = prixTotal;
 			}
 			
-			//Remplissage du tableau avec les lieux avec le moins d'agences
+		
+			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
+
+			affichage.update();
+			
+			try { Thread.sleep(100);
+			} catch (InterruptedException e) {}
+		}
+	}
+	
+	private void recursifBarycentre(Agence agenceDeplacee) {
+		
+		Lieu lieuPlusProche = lieuAssociePlusProche(agenceDeplacee);
+		Trajet trajet = new Trajet(agenceDeplacee,lieuPlusProche);
+		distanceTotale += trajet.getDistanceKm();
+		prixTotal += trajet.getDistanceKm()*agenceDeplacee.getNbpersonnes();
+		lieuPlusProche.setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+agenceDeplacee.getNbpersonnes());
+		
+		lieuPlusProche.getTrajets().add(trajet);
+		agenceDeplacee.getTrajets().add(trajet);
+		trajets.add(trajet);
+		//System.out.println("Ajout Lieu : "+trajet.getLieu().getNom() + " " + trajet.getLieu().isRetour()+ " \nAgence : "+trajet.getAgence().getNom());
+		
+		if(lieuPlusProche.getNbPersonneAssociees() > 60) {
+			
+			int difference;
+			int differenceMin = Integer.MAX_VALUE;
+			Trajet trajetADeplacer = null;
+			
+			for(Trajet trajetPossible : lieuPlusProche.getTrajets()) {
+				
+				difference = trajetPossible.getAgence().getNbpersonnes() - agenceDeplacee.getNbpersonnes();
+				//System.out.println(difference);
+				if(difference >= 0 && difference < differenceMin ) {
+					differenceMin = difference;
+					trajetADeplacer = trajetPossible;
+				}
+			}
+			//System.out.println("Supprime Lieu : "+trajetADeplacer.getLieu().getNom() + " \nAgence : "+trajetADeplacer.getAgence().getNom());
+			trajets.remove(trajetADeplacer);
+			distanceTotale -= trajetADeplacer.getDistanceKm();
+			prixTotal -= trajetADeplacer.getDistanceKm()*trajetADeplacer.getAgence().getNbpersonnes();
+			lieuPlusProche.setNbPersonneAssociees(lieuPlusProche.getNbPersonneAssociees() - trajetADeplacer.getAgence().getNbpersonnes());
+		
+			Agence agence = trajetADeplacer.getAgence();
+			agence.getTrajets().clear();
+			
+			affichage.update();
+			
+			recursifBarycentre(agence);
+		}
+		
+		
+		
+		checkLieuPersonne(trajet.getLieu());
+	}
+
+	public void recuitSimule() {
+		
+
+		Thread t1 = new Thread(new Runnable() {
+		     public void run() {
+		     
+		float distance;
+		int nbAgenceMin;
+		int agencePersonne;
+		int nbIterations = 100;
+		
+		trajetAuPlusPres();
+		affichage.update();
+		
+		Lieu lieuASupprimer = null;
+		float meilleurPrix = prixTotal;
+		
+		meilleureSolution = trajets;
+		
+		System.out.println("Prix solution 1 : " + meilleurPrix);
+		
+		for(int i = 0; i < nbIterations; i++) {
+			
+			nbAgenceMin = Integer.MAX_VALUE;
+			
 			for(Lieu lieu : lieux) {
-				if(lieu.isAssocie()) {
-					int nbAgence = lieu.getTrajets().size();
-					int maxAgences = lieuxASupprimer[0].getTrajets().size();
-					int indexMax = 0;
-
-					for(int j = 1; j < temperature; j++) {
-						if(lieuxASupprimer[j].getTrajets().size() > maxAgences) {
-							maxAgences = lieuxASupprimer[j].getTrajets().size();
-							indexMax = j;
-						}
-					}
-
-					if(nbAgence < maxAgences){
-						lieuxASupprimer[indexMax] = lieu;
-					}
+				if(lieu.isAssocie() 
+				&& (lieu.getTrajets().size() < nbAgenceMin)){
+					lieuASupprimer = lieu;
+					nbAgenceMin = lieu.getTrajets().size();
 				}
 			}
 			
-			//Déplacement des liaisons des agences
-			for(int j = 0; j < temperature; j++) {
-				ArrayList<Trajet> temp = lieuxASupprimer[j].getTrajets();
-				lieuxASupprimer[j].setAssocie(false);
-				prixTotal -= Commun.PRIX_LIEU;
-				for(Trajet t : temp) {
-					trajets.remove(t);
-					
-					distance = t.getDistanceKm();
-					agencePersonne = t.getAgence().getNbpersonnes();
-					lieuPersonne = t.getLieu().getNbPersonneAssociees();
-					
-					distanceTotale -= distance;
-					prixTotal -= distance*agencePersonne;
-					
-					Agence agence = t.getAgence();
-					agence.getTrajets().clear();
-					
-					Lieu lieuPlusProche = lieuLePlusProche(agence);
-					Trajet trajet = new Trajet(agence,lieuPlusProche);
-					lieuPlusProche.getTrajets().add(trajet);
-					agence.getTrajets().add(trajet);
-					trajets.add(trajet);
-					
-					distance = trajet.getDistanceKm();
-					agencePersonne = trajet.getAgence().getNbpersonnes();
-					lieuPersonne = trajet.getLieu().getNbPersonneAssociees();
-					
-					distanceTotale += distance;
-					prixTotal += distance*agencePersonne;
-					trajet.getLieu().setNbPersonneAssociees(lieuPersonne+agencePersonne);
-					
-					if(trajet.getLieu().getNbPersonneAssociees() > Commun.MAX_PERSONNE)
-						System.out.println("Au dela de " + Commun.MAX_PERSONNE + " personnes pour le lieu " 
-								+ trajet.getLieu().getNom() + " (" + trajet.getLieu().getNbPersonneAssociees() + ")");
-				}
+			ArrayList<Trajet> temp = lieuASupprimer.getTrajets();
+			lieuASupprimer.reset();
+			prixTotal -= Commun.PRIX_LIEU;
+			lieuTotal--;
+			
+			for(Trajet trajetEnTrop : temp) {
+				trajets.remove(trajetEnTrop);
+				
+				distance = trajetEnTrop.getDistanceKm();
+				agencePersonne = trajetEnTrop.getAgence().getNbpersonnes();
+				
+				distanceTotale -= distance;
+				prixTotal -= distance*agencePersonne;
+				
+				Agence agence = trajetEnTrop.getAgence();
+				agence.getTrajets().clear();
+				
+				recursifRecuit(agence, 0);
 			}
 			
 			if(prixTotal < meilleurPrix){
@@ -329,13 +456,72 @@ public class Logique extends Observable{
 			
 			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
 			
-			setChanged();
-			notifyObservers();
+			affichage.update();
+			
+			try { Thread.sleep(100);
+			} catch (InterruptedException e) {}
 		}
 		
-		return meilleureSolution;
+		     }
+		});  
+		t1.start();
 	}
 	
+	private void recursifRecuit(Agence agenceDeplacee, int level) {
+		
+		Lieu lieuPlusProche = lieuAssociePlusProche(agenceDeplacee);
+		Trajet trajet = new Trajet(agenceDeplacee,lieuPlusProche);
+		distanceTotale += trajet.getDistanceKm();
+		prixTotal += trajet.getDistanceKm()*agenceDeplacee.getNbpersonnes();
+		lieuPlusProche.setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+agenceDeplacee.getNbpersonnes());
+		
+		
+		if(lieuPlusProche.getNbPersonneAssociees() > 60) {
+			
+			int difference;
+			int differenceMin = Integer.MAX_VALUE;
+			Trajet trajetADeplacer = null;
+			
+			if(lieuPlusProche.getTrajets().size() <= 0) {
+				System.out.println("trajets lieuPlusProche vide");
+			}
+			System.out.println("-------------------");
+			for(Trajet trajetPossible : lieuPlusProche.getTrajets()) {
+				
+				difference = trajetPossible.getAgence().getNbpersonnes() - agenceDeplacee.getNbpersonnes();
+				System.out.println(difference);
+				if(difference >= 0 && difference < differenceMin ) {
+					differenceMin = difference;
+					trajetADeplacer = trajetPossible;
+				}
+			}
+			
+			if(trajetADeplacer == null) {
+				System.out.println("trajetADeplacer null");
+			}
+		
+			trajets.remove(trajetADeplacer);
+			distanceTotale -= trajetADeplacer.getDistanceKm();
+			prixTotal -= trajetADeplacer.getDistanceKm()*trajetADeplacer.getAgence().getNbpersonnes();
+			lieuPlusProche.setNbPersonneAssociees(lieuPlusProche.getNbPersonneAssociees() - trajetADeplacer.getAgence().getNbpersonnes());
+		
+			Agence agence = trajetADeplacer.getAgence();
+			agence.getTrajets().clear();
+			
+			System.out.println("LEVEL :" +level);
+			
+			affichage.update();
+			
+			recursifRecuit(agence, level+1);
+		}
+		
+		lieuPlusProche.getTrajets().add(trajet);
+		agenceDeplacee.getTrajets().add(trajet);
+		trajets.add(trajet);
+		
+		checkLieuPersonne(trajet.getLieu());
+	}
+
 	private static float[] getBarycentre(ArrayList<Agence> agences) {
 		
 		float numerateurX = 0;
@@ -355,21 +541,26 @@ public class Logique extends Observable{
 		return new float[] { x, y };
 	}
 	
-	private Lieu lieuLePlusProche(Agence agence) {
+	private Lieu lieuAssociePlusProche(Agence agence) {
 		Trajet temp = new Trajet();
 		temp.setAgence(agence);
 		Lieu best = null;
 		float min = Float.MAX_VALUE;
 		
 		for (Lieu lieu : lieux) {
-			if(lieu.isAssocie()) {
+			if(lieu.isAssocie() && lieu.isRetour()) {
 				temp.setLieu(lieu);
 				if(best == null || temp.getDistanceKm() < min) {
 					best = lieu;
 					min = temp.getDistanceKm();
 				}
+			} else {
+				//System.out.println("Lieu interdit : "+lieu.getNom());
+				lieu.setRetour(true);
 			}
 		}
+		//System.out.println("-------");
+		best.setRetour(false);
 		return best;
 	}
 	
@@ -402,7 +593,15 @@ public class Logique extends Observable{
 		return lieuTotal;
 	}
 
-	public void setAgences(ArrayList<Agence> listes) {
+	public int getNbAgenceMin() {
+		return nbAgenceMin;
+	}
+
+	public void setNbAgenceMin(int nbAgenceMin) {
+		this.nbAgenceMin = nbAgenceMin;
+	}
+
+	public void setAgences(GroupeAgence listes) {
 		resetTrajets();
 		this.agences = listes;
 	}

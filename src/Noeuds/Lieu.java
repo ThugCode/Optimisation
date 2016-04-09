@@ -3,12 +3,14 @@ public class Lieu extends Noeud {
 
 	private int nbPersonneAssociees;
 	private boolean associe;
+	private boolean retour;
 	
 	public Lieu() {
 		super();
 		
 		this.nbPersonneAssociees = 0;
 		this.associe = false;
+		this.retour = true;
 	}
 	
 	public Lieu(int id, String nom, String codepostal, float longitude, float latitude) {
@@ -36,6 +38,14 @@ public class Lieu extends Noeud {
 		this.associe = associe;
 	}
 	
+	public boolean isRetour() {
+		return retour;
+	}
+
+	public void setRetour(boolean retour) {
+		this.retour = retour;
+	}
+
 	public String toString() {
 		return "Lieu "+this.nom+
 				" ("+this.id+") cp : "+this.codepostal+
