@@ -1,6 +1,7 @@
 package Calcul;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Random;
 
@@ -25,7 +26,7 @@ public class Logique extends Thread {
 	private GroupeAgence agences;
 	private ArrayList<Agence> barycentres;
 	private ArrayList<Trajet> trajets;
-	private int nbAgenceMin;
+	private int nbLieuxMin;
 	
 	private float distanceTotale;
 	private float prixTotal;
@@ -41,6 +42,7 @@ public class Logique extends Thread {
 		
     	agences = LireFichiers.LireAgence(filePath, 10);
     	lieux = LireFichiers.LireLieuxPossible();
+    	
     	resetTrajets();
 	}
 	
@@ -521,6 +523,30 @@ public class Logique extends Thread {
 		
 		checkLieuPersonne(trajet.getLieu());
 	}
+	
+	public void algogene() {
+		
+		Random r = new Random();
+		//Liste correspondant aux solutions d'un génération
+		ArrayList<BitSet> generation = new ArrayList<BitSet>();
+		
+		calculNbLieuxMin();
+		
+		//Génération aléatoire des premières solutions
+		for(int i = 0; i < 5; i++) {
+			BitSet solution = new BitSet(lieux.size());
+			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(5));
+
+			for(int j = 0; j < nbIteration; j++) {
+				solution.set(r.nextInt(lieux.size()));
+			}
+			generation.add(solution);
+		}
+		
+		for(BitSet b : generation) {
+			System.out.println(b.toString());
+		}
+	}
 
 	private static float[] getBarycentre(ArrayList<Agence> agences) {
 		
@@ -564,6 +590,19 @@ public class Logique extends Thread {
 		return best;
 	}
 	
+	private void calculNbLieuxMin() {
+		int nbPersonnes = 0;
+    	for(Agence agence : agences) {
+    		nbPersonnes += agence.getNbpersonnes();
+    	}
+    	
+    	nbLieuxMin = nbPersonnes / 60;
+    	if(nbPersonnes % 60 != 0)
+    		nbLieuxMin += 1;
+    	
+    	System.out.println("Nb Personnes : " + nbPersonnes + " Lieux Min : "+ nbLieuxMin);
+	}
+	
 	public InterfaceVisuelle getAffichage() {
 		return affichage;
 	}
@@ -593,12 +632,12 @@ public class Logique extends Thread {
 		return lieuTotal;
 	}
 
-	public int getNbAgenceMin() {
-		return nbAgenceMin;
+	public int getNbLieuxMin() {
+		return nbLieuxMin;
 	}
 
-	public void setNbAgenceMin(int nbAgenceMin) {
-		this.nbAgenceMin = nbAgenceMin;
+	public void setNbLieuxMin(int nbLieuxMin) {
+		this.nbLieuxMin = nbLieuxMin;
 	}
 
 	public void setAgences(GroupeAgence listes) {

@@ -51,6 +51,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	private JButton btn_pluspres;
 	private JButton btn_barycentre;
 	private JButton btn_recuit;
+	private JButton btn_algogene;
 	private JButton btn_choixAgence;
 	private JCheckBox cb_trajet;
 	private JCheckBox cb_lieu;
@@ -171,6 +172,13 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		btn_recuit.setBounds(160, height, 120, 50);
 		btn_recuit.addActionListener(this);
 		pnl_control.add(btn_recuit);
+		
+		height += 60;
+		
+		btn_algogene = new JButton("Algogene");
+		btn_algogene.setBounds(20, height, 120, 50);
+		btn_algogene.addActionListener(this);
+		pnl_control.add(btn_algogene);
 		
 		height += 60;
 				
@@ -306,6 +314,9 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 			logique.recuitSimule();
 			carte.repaint();
 			System.out.println("Prix meilleure solution: " + logique.getPrixTotal());
+			
+		} else if(e.getSource() == btn_algogene) {
+			logique.algogene();
 		} else if(e.getSource() == btn_choixAgence) {
 			
 			File file = new File("Fichiers");
