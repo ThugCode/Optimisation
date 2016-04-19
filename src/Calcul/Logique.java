@@ -3,6 +3,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.Random;
 
 import javax.swing.JOptionPane;
@@ -527,25 +529,38 @@ public class Logique extends Thread {
 	public void algogene() {
 		
 		Random r = new Random();
+		float prix;
+		
 		//Liste correspondant aux solutions d'un génération
-		ArrayList<BitSet> generation = new ArrayList<BitSet>();
+		HashMap<BitSet,Float> generation = new HashMap<BitSet,Float>();
 		
 		calculNbLieuxMin();
 		
 		//Génération aléatoire des premières solutions
-		for(int i = 0; i < 5; i++) {
+		while(generation.size() < 5) {
 			BitSet solution = new BitSet(lieux.size());
-			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(5));
+			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(2));
 
 			for(int j = 0; j < nbIteration; j++) {
 				solution.set(r.nextInt(lieux.size()));
 			}
-			generation.add(solution);
+			if(solution.cardinality() >= nbLieuxMin)
+			{
+				prix = calculPrixSolution(solution);
+				generation.put(solution,prix);
+			}
 		}
 		
-		for(BitSet b : generation) {
+		for(Entry<BitSet, Float> b : generation.entrySet()) {
 			System.out.println(b.toString());
 		}
+		
+		recursifAlgogene(generation);
+	}
+	
+	private void recursifAlgogene(HashMap<BitSet,Float> generation) {
+		
+		
 	}
 
 	private static float[] getBarycentre(ArrayList<Agence> agences) {
@@ -588,6 +603,61 @@ public class Logique extends Thread {
 		//System.out.println("-------");
 		best.setRetour(false);
 		return best;
+	}
+	
+	private float calculPrixSolution(BitSet solution) {
+		//Copie de la liste des agences afin de pouvoir en supprimer
+		ArrayList<Agence> agencesTmp = new ArrayList<Agence>(agences); 
+		Agence best;
+		Lieu courant;
+		int nbPersonnes;
+		float min;
+		float prix = 0;
+		boolean nonPlein;
+		
+		Trajet temp = new Trajet();
+		
+		//Parcours des lieux et associations des agences les plus proches
+		for (int i = solution.nextSetBit(0); i >= 0; i = solution.nextSetBit(i+1)) {
+			nonPlein = true;
+			nbPersonnes = 0;
+			prix += Commun.PRIX_LIEU;
+			courant = lieux.get(i);
+			
+			while(nonPlein) {
+				temp.setLieu(courant);
+				best = null;
+				min = Float.MAX_VALUE;
+				
+				//Determination de l'agence la plus proche
+				for(Agence agence : agencesTmp) {
+					temp.setAgence(agence);
+					if(best == null || temp.getDistanceKm() < min) {
+						best = agence;
+						min = temp.getDistanceKm();
+					}
+				}
+				
+				nbPersonnes = courant.getNbPersonneAssociees() + best.getNbpersonnes();
+				
+				//S'il reste de la place on associe l'agence sinon on passe au lieu suivant
+				if(nbPersonnes < 60) {
+					agencesTmp.remove(best);
+					temp.setAgence(best);
+					courant.setNbPersonneAssociees(nbPersonnes);
+					prix += temp.getDistanceKm()*best.getNbpersonnes()*0.8;
+				}
+				else {
+					nonPlein = false;
+				}
+				
+			}
+		     if (i == Integer.MAX_VALUE) {
+		         break; // or (i+1) would overflow
+		     }
+		 }
+		
+		return prix;
 	}
 	
 	private void calculNbLieuxMin() {
