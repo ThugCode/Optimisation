@@ -551,16 +551,58 @@ public class Logique extends Thread {
 			}
 		}
 		
+		recursifAlgogene(generation, 1);
+	}
+	
+	private void recursifAlgogene(HashMap<BitSet,Float> generation, int iteration) {
+		HashMap<BitSet,Float> solutions = new HashMap<BitSet,Float>();
+		ArrayList keys;
+		Random r = new Random();
+		float prix;
+		int index;
+		int i = 0;
+		BitSet temp;
+		
+		System.out.println("Génération :" + iteration);
 		for(Entry<BitSet, Float> b : generation.entrySet()) {
 			System.out.println(b.toString());
 		}
-		
-		recursifAlgogene(generation);
-	}
-	
-	private void recursifAlgogene(HashMap<BitSet,Float> generation) {
-		
-		
+
+		//Reproduction avec selection aléatoire en fonction des poids
+		solutions = generation;
+		//TODO
+
+		keys = new ArrayList(solutions.keySet());
+
+		//Croisements ou mutations en fonction d'un random
+		for(Entry<BitSet,Float> solution : solutions.entrySet()) {
+			if(r.nextFloat() < 0.1){
+				//Mutation
+				solution.getKey().flip(r.nextInt(solution.getKey().size()));
+			}
+			else {
+				//Croisement
+				index = r.nextInt(solution.getKey().size());
+				if(i + 1 < keys.size()){
+					temp = (BitSet) keys.get(i + 1);
+				} else {
+					temp = (BitSet) keys.get(0);
+				}
+				for(int j = index; j < solution.getKey().size(); j++) {
+					solution.getKey().set(j, temp.get(j));
+				}
+			}
+
+			//Calcul du prix de la solution
+			prix = calculPrixSolution(solution.getKey());
+			solution.setValue(prix);
+			i++;
+		}
+
+		//Rappel de la fonction avec la nouvelle generation
+		if(iteration < 10) {
+			recursifAlgogene(solutions, iteration + 1);		
+		}
 	}
 
 	private static float[] getBarycentre(ArrayList<Agence> agences) {
