@@ -137,7 +137,7 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		lbl_nombreVoisinsAgences.setBounds(30, height, 250, 30);
 		pnl_control.add(lbl_nombreVoisinsAgences);
 		
-		txt_nombreVoisinsAgences = new JTextField("10");
+		txt_nombreVoisinsAgences = new JTextField("20");
 		txt_nombreVoisinsAgences.setBounds(260, height, 40, 30);
 		pnl_control.add(txt_nombreVoisinsAgences);
 		

@@ -35,6 +35,8 @@ public class Logique extends Thread {
 	private int lieuTotal;
 	ArrayList<Trajet> meilleureSolution;
 	
+	ArrayList<GroupeAgence> groupeAgences;
+	
 	public Logique(InterfaceVisuelle pAffichage)
 	{
 		affichage = pAffichage;
@@ -42,7 +44,7 @@ public class Logique extends Thread {
 		String filePath = new File("").getAbsolutePath();
 		filePath += "/Fichiers/ListeAgences_100.txt";
 		
-    	agences = LireFichiers.LireAgence(filePath, 10);
+    	agences = LireFichiers.LireAgence(filePath, 20);
     	lieux = LireFichiers.LireLieuxPossible();
     	
     	resetTrajets();
@@ -144,7 +146,11 @@ public class Logique extends Thread {
 		
 		//Mélange de la liste des agences pour que le récursif
 		//donne des résutlats toujours différents
-		Collections.shuffle(agences);
+		//Collections.shuffle(agences);
+		
+		Random rand = new Random();
+		int indexSwap = rand.nextInt(agences.size());
+		Collections.swap(agences, 0, indexSwap);
 		
 		//Parcours de toutes les agences pour leur trouver un groupe
 		//en fonction de leurs voisins en récursif
@@ -160,6 +166,8 @@ public class Logique extends Thread {
 		Lieu lieuLePlusPres = null;			//Lieu le plus pres de l'agence barycentre
 		Agence barycentre = new Agence();	//Barycentre de toutes les agences du groupe
 		Trajet temp = new Trajet();			//Trajet entre lieux/barycentre pour calculer les distances
+		
+		this.groupeAgences = listeGroupes;
 		
 		//Recherche du lieu le plus proche du barycentre 
 		//des agences dans chaque groupe
@@ -213,6 +221,173 @@ public class Logique extends Thread {
 			}
 		}
 	}
+	
+	
+	
+	
+	public void changerGroupe() {
+		//TODO
+		
+		trajetBarycentre();
+		
+		float bestPrix = prixTotal;
+		ArrayList<Trajet> bestSolution = trajets;
+		
+		float[] coord;						//Coordonnees du barycentre
+		float min;							//Plus petite distance
+		Lieu lieuLePlusPres = null;			//Lieu le plus pres de l'agence barycentre
+		Agence barycentre = new Agence();	//Barycentre de toutes les agences du groupe
+		Trajet temp = new Trajet();			//Trajet entre lieux/barycentre pour calculer les distances
+		
+		Random rand = new Random();
+		int groupeRandomIndex;
+		int groupeVoisinIndex;
+		int agenceRandomIndex;
+		int agenceVoisinIndex;
+		float[] coordPremierGroupe;
+		float[] coordDeuxiemeGroupe;
+		
+		for(int i = 0; i<100 ; i++) {
+		
+			temp = new Trajet();
+			
+			resetTrajets();
+			
+			//Désassociation des lieux
+			for (Lieu lieu : lieux) {
+				lieu.reset();
+			}
+			
+			groupeRandomIndex = rand.nextInt(this.groupeAgences.size());
+			
+			groupeVoisinIndex = -1;
+			
+			//Calcul du barycentre du groupe
+			coordPremierGroupe = getBarycentre(this.groupeAgences.get(groupeRandomIndex));
+			barycentre = new Agence();
+			barycentre.setLatitude(coordPremierGroupe[0]);
+			barycentre.setLongitude(coordPremierGroupe[1]);
+			temp.setAgence(barycentre);
+			
+			for (GroupeAgence groupe : this.groupeAgences) {
+				
+				if(groupe == this.groupeAgences.get(groupeRandomIndex))
+					continue;
+				
+				min = Float.MAX_VALUE;
+				Lieu lieu = new Lieu();
+				coordDeuxiemeGroupe = getBarycentre(groupe);
+				lieu.setLatitude(coordDeuxiemeGroupe[0]);
+				lieu.setLongitude(coordDeuxiemeGroupe[1]);
+
+				temp.setLieu(lieu);
+				if(temp.getDistanceKm() < min) {
+					groupeVoisinIndex = this.groupeAgences.indexOf(groupe);
+					min = temp.getDistanceKm();
+				}
+			}
+			
+			agenceRandomIndex = rand.nextInt(this.groupeAgences.get(groupeRandomIndex).size());
+			agenceVoisinIndex = 0;
+			
+			temp = new Trajet();
+			temp.setAgence(barycentre);
+			
+			for (Agence agence : this.groupeAgences.get(groupeVoisinIndex)) {
+				
+				min = Float.MAX_VALUE;
+				Lieu lieu = new Lieu();
+				lieu.setLatitude(agence.getLatitude());
+				lieu.setLongitude(agence.getLongitude());
+
+				temp.setLieu(lieu);
+				if(temp.getDistanceKm() < min) {
+					agenceVoisinIndex = this.groupeAgences.get(groupeVoisinIndex).indexOf(agence);
+					min = temp.getDistanceKm();
+				}
+			}
+			
+			
+			this.groupeAgences.get(groupeRandomIndex).add(this.groupeAgences.get(groupeVoisinIndex).get(agenceVoisinIndex));
+			this.groupeAgences.get(groupeVoisinIndex).add(this.groupeAgences.get(groupeRandomIndex).get(agenceRandomIndex));
+			
+			this.groupeAgences.get(groupeRandomIndex).remove(agenceRandomIndex);
+			this.groupeAgences.get(groupeVoisinIndex).remove(agenceVoisinIndex);
+			
+			temp = new Trajet();
+			
+			for (GroupeAgence groupe : this.groupeAgences) {
+				
+				//Calcul du barycentre du groupe
+				coord = getBarycentre(groupe);
+				barycentre = new Agence();
+				barycentre.setLatitude(coord[0]);
+				barycentre.setLongitude(coord[1]);
+				temp.setAgence(barycentre);
+				
+				barycentres.add(barycentre);
+				
+				//Recherche du lieu le plus proche
+				min = Float.MAX_VALUE;
+				for (Lieu lieu : lieux) {
+					if(!lieu.isAssocie()) {
+						temp.setLieu(lieu);
+						if(temp.getDistanceKm() < min) {
+							lieuLePlusPres = lieu;
+							min = temp.getDistanceKm();
+						}
+					}
+				}
+				lieuLePlusPres.setAssocie(true);
+				prixTotal += Commun.PRIX_LIEU;
+				lieuTotal ++;
+				
+				int agencePersonne = 0;
+				int lieuPersonne = 0;
+				float distance = 0;
+				
+				//Pour toutes les agences du groupe,
+				//on créer un trajet avec le lieu le plus proche
+				for (Agence agence : groupe) {
+					Trajet trajet = new Trajet(agence, lieuLePlusPres);
+					lieuLePlusPres.getTrajets().add(trajet);
+					agence.getTrajets().add(trajet);
+					trajets.add(trajet);
+					
+					distance = trajet.getDistanceKm();
+					agencePersonne = trajet.getAgence().getNbpersonnes();
+					lieuPersonne = trajet.getLieu().getNbPersonneAssociees();
+					
+					distanceTotale += distance;
+					prixTotal += distance*agencePersonne*Commun.PRIX_TRAJET;
+					trajet.getLieu().setNbPersonneAssociees(lieuPersonne+agencePersonne);
+					
+					checkLieuPersonne(trajet.getLieu());
+				}
+			}
+			
+			if(prixTotal < bestPrix){
+				bestSolution = trajets;
+				bestPrix = prixTotal;
+				
+				affichage.update();
+			}
+			
+			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
+
+			
+			
+			try { Thread.sleep(10);
+			} catch (InterruptedException e) {}
+		}
+		
+		JOptionPane.showMessageDialog(null, "La meilleure solution donne un prix de : "+bestPrix+" €");
+		
+		trajets = bestSolution;
+		prixTotal = bestPrix;
+	}
+	
+	
 	
 	/**
 	 * Recherche récursive de voisin pour contruire les groupes d'agences
@@ -276,7 +451,7 @@ public class Logique extends Thread {
 		
 		System.out.println("Prix solution 1 : " + bestPrix);
 		
-		for(int i = 0; i < 100; i++) {
+		for(int i = 0; i < 1000; i++) {
 			
 			trajetBarycentre();
 			
