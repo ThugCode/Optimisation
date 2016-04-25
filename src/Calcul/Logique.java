@@ -113,7 +113,7 @@ public class Logique extends Thread {
 			trajets.add(trajet);
 			
 			distanceTotale += trajet.getDistanceKm();
-			prixTotal += trajet.getDistanceKm()*agence.getNbpersonnes();
+			prixTotal += trajet.getDistanceKm()*agence.getNbpersonnes()*0.8;
 			best.setNbPersonneAssociees(best.getNbPersonneAssociees()+agence.getNbpersonnes());
 		}
 	}
@@ -206,7 +206,7 @@ public class Logique extends Thread {
 				lieuPersonne = trajet.getLieu().getNbPersonneAssociees();
 				
 				distanceTotale += distance;
-				prixTotal += distance*agencePersonne;
+				prixTotal += distance*agencePersonne*0.8;
 				trajet.getLieu().setNbPersonneAssociees(lieuPersonne+agencePersonne);
 				
 				checkLieuPersonne(trajet.getLieu());
@@ -331,7 +331,7 @@ public class Logique extends Thread {
 			agencePersonne = trajetEnTrop.getAgence().getNbpersonnes();
 			
 			distanceTotale -= distance;
-			prixTotal -= distance*agencePersonne;
+			prixTotal -= distance*agencePersonne*0.8;
 			
 			Agence agence = trajetEnTrop.getAgence();
 			agence.getTrajets().clear();
@@ -358,7 +358,7 @@ public class Logique extends Thread {
 		Lieu lieuPlusProche = lieuAssociePlusProche(agenceDeplacee);
 		Trajet trajet = new Trajet(agenceDeplacee,lieuPlusProche);
 		distanceTotale += trajet.getDistanceKm();
-		prixTotal += trajet.getDistanceKm()*agenceDeplacee.getNbpersonnes();
+		prixTotal += trajet.getDistanceKm()*agenceDeplacee.getNbpersonnes()*0.8;
 		lieuPlusProche.setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+agenceDeplacee.getNbpersonnes());
 		
 		lieuPlusProche.getTrajets().add(trajet);
@@ -384,7 +384,7 @@ public class Logique extends Thread {
 			//System.out.println("Supprime Lieu : "+trajetADeplacer.getLieu().getNom() + " \nAgence : "+trajetADeplacer.getAgence().getNom());
 			trajets.remove(trajetADeplacer);
 			distanceTotale -= trajetADeplacer.getDistanceKm();
-			prixTotal -= trajetADeplacer.getDistanceKm()*trajetADeplacer.getAgence().getNbpersonnes();
+			prixTotal -= trajetADeplacer.getDistanceKm()*trajetADeplacer.getAgence().getNbpersonnes()*0.8;
 			lieuPlusProche.setNbPersonneAssociees(lieuPlusProche.getNbPersonneAssociees() - trajetADeplacer.getAgence().getNbpersonnes());
 		
 			Agence agence = trajetADeplacer.getAgence();
