@@ -1,4 +1,5 @@
 package Affichage;
+
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Image;
@@ -6,9 +7,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.io.File;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -18,7 +19,10 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSlider;
 import javax.swing.JTextField;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import Arcs.Lien;
@@ -31,7 +35,8 @@ import Noeuds.Lieu;
 /*
  * Classe d'affichage de l'interface
  */
-public class InterfaceVisuelle extends JFrame implements ActionListener, ItemListener {
+public class InterfaceVisuelle extends JFrame 
+			implements ActionListener, ItemListener, ChangeListener, KeyListener {
 	private static final long serialVersionUID = 1L;
 	
 	private final int LARGEUR = 1000;
@@ -42,25 +47,26 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	private boolean afficherLieu;
 	private boolean afficherAgence;
 	private boolean afficherLienAgence;
+	private boolean afficherBarycentre;
 	
 	private Carte carte;
 	private Logique logique;
 	
 	private JPanel pnl_control;
-	private JButton btn_hasard;
-	private JButton btn_pluspres;
 	private JButton btn_barycentre;
-	private JButton btn_recuit;
 	private JButton btn_algogene;
 	private JButton btn_choixAgence;
 	private JCheckBox cb_trajet;
 	private JCheckBox cb_lieu;
+	private JCheckBox cb_barycentre;
 	private JCheckBox cb_agence;
 	private JCheckBox cb_liensAgence;
 	private JTextField txt_totalLieu;
 	private JTextField txt_totalDistance;
 	private JTextField txt_totalPrix;
 	private JTextField txt_nombreVoisinsAgences;
+	private JTextField txt_iterations;
+	private JSlider slider_temperature;
 
 	public InterfaceVisuelle() {
 		setSize(LARGEUR, HAUTEUR);
@@ -73,7 +79,8 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		afficherTrajet = true;
 		afficherAgence = true;
 		afficherLieu = true;
-		afficherLienAgence = true;
+		afficherLienAgence = false;
+		afficherBarycentre = true;
 		
 		logique = new Logique(this);
 		carte = new Carte(this);
@@ -92,11 +99,11 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		int height = 10;
 		
-		JLabel lbl_line_noeuds = new JLabel("Noeuds");
+		JLabel lbl_line_noeuds = new JLabel("Noeuds --------");
 		lbl_line_noeuds.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_noeuds);
 		
-		height += 20;
+		height += 30;
 		
 		cb_lieu = new JCheckBox("<html>Afficher les lieux <font color=red>・</font></html>");
 		cb_lieu.setSelected(true);
@@ -119,27 +126,9 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		
 		height += 30;
 		
-		JLabel lbl_line_arcs = new JLabel("Arcs");
+		JLabel lbl_line_arcs = new JLabel("Arcs ------------");
 		lbl_line_arcs.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_arcs);
-		
-		height += 20;
-		
-		cb_liensAgence = new JCheckBox("<html>Afficher les liens d'agences <font color=blue>---</font></html>");
-		cb_liensAgence.setSelected(true);
-		cb_liensAgence.addItemListener(this);
-		cb_liensAgence.setBounds(20, height, 240, 30);
-		pnl_control.add(cb_liensAgence);
-		
-		height += 30;
-		
-		JLabel lbl_nombreVoisinsAgences = new JLabel("Nombre de voisins d'une agence :");
-		lbl_nombreVoisinsAgences.setBounds(30, height, 250, 30);
-		pnl_control.add(lbl_nombreVoisinsAgences);
-		
-		txt_nombreVoisinsAgences = new JTextField("20");
-		txt_nombreVoisinsAgences.setBounds(260, height, 40, 30);
-		pnl_control.add(txt_nombreVoisinsAgences);
 		
 		height += 30;
 		
@@ -149,39 +138,87 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	    cb_trajet.setBounds(20, height, 240, 30);
 		pnl_control.add(cb_trajet);
 		
-		height += 40;
+		height += 30;
 		
-		btn_hasard = new JButton("Hasard");
-		btn_hasard.setBounds(20, height, 120, 50);
-		btn_hasard.addActionListener(this);
-		pnl_control.add(btn_hasard);
+		cb_liensAgence = new JCheckBox("<html>Afficher les liens d'agences <font color=blue>---</font></html>");
+		cb_liensAgence.setSelected(false);
+		cb_liensAgence.addItemListener(this);
+		cb_liensAgence.setBounds(20, height, 240, 30);
+		pnl_control.add(cb_liensAgence);
 		
-		btn_pluspres = new JButton("Plus près");
-		btn_pluspres.setBounds(160, height, 120, 50);
-		btn_pluspres.addActionListener(this);
-		pnl_control.add(btn_pluspres);
+		height += 30;
 		
-		height += 60;
+		JLabel lbl_line_recuit = new JLabel("Recuit simulé ------------");
+		lbl_line_recuit.setBounds(20, height, 280, 30);
+		pnl_control.add(lbl_line_recuit);
+		
+		height += 30;
 		
 		btn_barycentre = new JButton("Barycentre");
-		btn_barycentre.setBounds(20, height, 120, 50);
+		btn_barycentre.setBounds(20, height, 120, 40);
 		btn_barycentre.addActionListener(this);
 		pnl_control.add(btn_barycentre);
 		
-		btn_recuit = new JButton("Test recuit");
-		btn_recuit.setBounds(160, height, 120, 50);
-		btn_recuit.addActionListener(this);
-		pnl_control.add(btn_recuit);
+		JLabel lbl_iterations = new JLabel("Itérations :");
+		lbl_iterations.setBounds(150, height, 70, 30);
+		pnl_control.add(lbl_iterations);
 		
-		height += 60;
+		txt_iterations = new JTextField("500");
+		txt_iterations.setBounds(240, height, 60, 30);
+		txt_iterations.addKeyListener(this);
+		pnl_control.add(txt_iterations);
+		
+		height += 40;
+		
+		JLabel lbl_nombreVoisinsAgences = new JLabel("Nombre de voisins d'une agence :");
+		lbl_nombreVoisinsAgences.setBounds(20, height, 250, 30);
+		pnl_control.add(lbl_nombreVoisinsAgences);
+		
+		txt_nombreVoisinsAgences = new JTextField("20");
+		txt_nombreVoisinsAgences.setBounds(260, height, 40, 30);
+		txt_nombreVoisinsAgences.addKeyListener(this);
+		pnl_control.add(txt_nombreVoisinsAgences);
+		
+		height += 30;
+		
+		JLabel lbl_temperature = new JLabel("Température :");
+		lbl_temperature.setBounds(20, height, 90, 30);
+		pnl_control.add(lbl_temperature);
+		
+		slider_temperature = new JSlider(JSlider.HORIZONTAL, 1, 10000, 500);
+		slider_temperature.setBounds(120, height-8, 180, 50);
+		slider_temperature.addChangeListener(this);
+		pnl_control.add(slider_temperature);
+
+		height += 30;
+		
+		cb_barycentre = new JCheckBox("<html>Afficher les barycentres <font color=#1bee14>●</font></html>");
+		cb_barycentre.setSelected(true);
+		cb_barycentre.addItemListener(this);
+		cb_barycentre.setBounds(20, height, 240, 30);
+		pnl_control.add(cb_barycentre);
+		
+		height += 30;
+		
+		JLabel lbl_line_algogene = new JLabel("Algogène ------------");
+		lbl_line_algogene.setBounds(20, height, 280, 30);
+		pnl_control.add(lbl_line_algogene);
+		
+		height += 30;
 		
 		btn_algogene = new JButton("Algogene");
-		btn_algogene.setBounds(20, height, 120, 50);
+		btn_algogene.setBounds(100, height, 120, 40);
 		btn_algogene.addActionListener(this);
 		pnl_control.add(btn_algogene);
 		
-		height += 60;
-				
+		height += 40;
+		
+		JLabel lbl_line_resultats = new JLabel("Résultats ------------");
+		lbl_line_resultats.setBounds(20, height, 280, 30);
+		pnl_control.add(lbl_line_resultats);
+		
+		height += 30;
+		
 		JLabel lbl_totalLieu = new JLabel("Lieux utilisés :");
 		lbl_totalLieu.setBounds(20, height, 120, 30);
 		pnl_control.add(lbl_totalLieu);
@@ -238,12 +275,14 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		}
 		
 		//Affichage des barycentres
-		rayon = (int)(4*facteur);
-		g.setColor(Color.orange);
-		for (Agence barycentre : logique.getBarycentres()) {
-			pointX1 = barycentre.getLongitudeForMap(facteur);
-			pointY1 = basY - barycentre.getLatitudeForMap(facteur);
-			g.fillOval(pointX1,pointY1,rayon,rayon);
+		if(afficherBarycentre) {
+			rayon = (int)(4*facteur);
+			g.setColor(Color.green);
+			for (Agence barycentre : logique.getBarycentres()) {
+				pointX1 = barycentre.getLongitudeForMap(facteur);
+				pointY1 = basY - barycentre.getLatitudeForMap(facteur);
+				g.fillOval(pointX1,pointY1,rayon,rayon);
+			}
 		}
 		
 		//Affichage des agences
@@ -291,29 +330,15 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if(e.getSource() == btn_hasard) {
-			logique.trajetAuHasard();
-			carte.repaint();
-		} else if(e.getSource() == btn_pluspres) {
-			logique.trajetAuPlusPres();
-			carte.repaint();
-		} else if(e.getSource() == btn_barycentre) {
-			//logique.trajetBarycentre();
+		
+		if(e.getSource() == btn_barycentre) {
 			
 			Thread t1 = new Thread(new Runnable() {
 			     public void run() {
-			    	 //logique.recuitBarycentre();
-			    	 logique.temperatureBarycentre();
+			    	 logique.recuitSimuleBarycentre();
 			     }
 			});  
 			t1.start();
-			
-			//carte.repaint();
-			
-		} else if(e.getSource() == btn_recuit) {
-			logique.recuitSimule();
-			carte.repaint();
-			System.out.println("Prix meilleure solution: " + logique.getPrixTotal());
 			
 		} else if(e.getSource() == btn_algogene) {
 			logique.algogene();
@@ -326,7 +351,8 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 		    chooser.setFileFilter(new FileNameExtensionFilter("txt", "txt"));
 		    int returnVal = chooser.showOpenDialog(this);
 		    if(returnVal == JFileChooser.APPROVE_OPTION) {
-		    	logique.setAgences(LireFichiers.LireAgence(chooser.getSelectedFile().getPath(), Integer.parseInt(txt_nombreVoisinsAgences.getText())));
+		    	logique.setPathFichier(chooser.getSelectedFile().getPath());
+		    	logique.lireAgences(Integer.parseInt(txt_nombreVoisinsAgences.getText()));
 		    	carte.repaint();
 		    }
 		}
@@ -343,16 +369,36 @@ public class InterfaceVisuelle extends JFrame implements ActionListener, ItemLis
 	    	afficherAgence = ! afficherAgence;
 	    } else if (source == cb_liensAgence) {
 	    	afficherLienAgence = ! afficherLienAgence;
+	    } else if (source == cb_barycentre) {
+	    	afficherBarycentre = ! afficherBarycentre;
 	    }
 
 	    carte.repaint();
-	    
-	    //if (e.getStateChange() == ItemEvent.DESELECTED)
-	        //...make a note of it...
 	}
 
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		JSlider source = (JSlider)e.getSource();
+	    if (!source.getValueIsAdjusting()) {
+	        logique.setTemperature((int)source.getValue());
+	    }
+	}
+	
+	@Override
+	public void keyReleased(KeyEvent e) {
+		if (e.getSource() == txt_nombreVoisinsAgences) {
+			logique.lireAgences(Integer.parseInt(txt_nombreVoisinsAgences.getText()));
+		} else if(e.getSource() == txt_iterations) {
+			logique.setIterations(Integer.parseInt(txt_iterations.getText()));
+		}
+	}
+	@Override
+	public void keyTyped(KeyEvent e) {}
+	@Override
+	public void keyPressed(KeyEvent e) {}
+	
 	public void update() {
 		carte.repaint();
 		this.repaint();
-	}
+	}	
 }
