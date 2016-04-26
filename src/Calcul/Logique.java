@@ -401,7 +401,7 @@ public class Logique extends Thread {
 		float prix;
 		
 		//Liste correspondant aux solutions d'un génération
-		HashMap<BitSet,Float> generation = new HashMap<BitSet,Float>();
+		List<Solution> generation = new ArrayList<Solution>();
 		
 		calculNbLieuxMin();
 		
@@ -413,99 +413,108 @@ public class Logique extends Thread {
 			for(int j = 0; j < nbIteration; j++) {
 				solution.set(r.nextInt(lieux.size()));
 			}
+			
 			if(solution.cardinality() >= nbLieuxMin)
 			{
 				prix = calculPrixSolution(solution);
-				generation.put(solution,prix);
+				generation.add(new Solution(solution,prix));
 			}
 		}
 		
 		recursifAlgogene(generation, 1);
 	}
 	
-	private void recursifAlgogene(HashMap<BitSet,Float> generation, int iteration) {
-		HashMap<BitSet,Float> solutions = new HashMap<BitSet,Float>();
-		List<BitSet> keys;
+	private void recursifAlgogene(List<Solution> generation, int iteration) {
+		List<Solution> solutions = new ArrayList<Solution>();
 		Random r = new Random();
 		float prix;
-		int index;
 		float sommeInverse = 0;
-		int i = 0;
-		BitSet temp;
+		Solution temp;
 		
-		System.out.println("Génération :" + iteration);
-		for(Entry<BitSet, Float> b : generation.entrySet()) {
-			System.out.println(b.toString());
-		}
 
-		List<BitSet> cles = new ArrayList<BitSet>(generation.keySet());
-		
-		Collections.sort(cles,new Comparator<BitSet>() {
-			public int compare(BitSet b1, BitSet b2){
-				return generation.get(b1).compareTo(generation.get(b2));
+		//Tri dans l'ordre croissant du prix des solutions
+		Collections.sort(generation,new Comparator<Solution>() {
+			public int compare(Solution b1, Solution b2){
+				return b1.getPrix().compareTo(b2.getPrix());
 			}
 		});
 		
-		for(BitSet bitSet : cles) {
-			float valeur = generation.get(bitSet);
+		for(Solution solution : generation) {
+			float valeur = solution.getPrix();
 			valeur = 1/valeur;
 			sommeInverse += valeur;
-			generation.put(bitSet, valeur);
+			solution.setPropa(valeur);
 		}
 		
-		for(BitSet bitSet : cles) {
-			float valeur = generation.get(bitSet);
+		for(Solution solution : generation) {
+			float valeur = solution.getPropa();
 			valeur = valeur/sommeInverse;
-			generation.put(bitSet, valeur);
+			solution.setPropa(valeur);
 		}
-				
-		//Reproduction avec selection aléatoire en fonction des poids		
-		for(int l = 0; l < 5; l++) {
-			float propa = r.nextFloat();
-			int j = 0;
-			float propCumul = 0;
-			
-			while(j < cles.size() && propa > propCumul) {
-				/*System.out.println("j = " + j);
-				System.out.println("Propa cumul = " + propCumul);
-				System.out.println("Propa = " + generation.get(cles.get(j)));*/
-				propCumul += generation.get(cles.get(j));
-				j++;
-			}
 		
-			solutions.put(cles.get(j-1), new Float(0.0));
+		//Affichage de la génération
+		System.out.println("Génération :" + iteration);
+		for(Solution s : generation) {
+			System.out.println(s.toString());
+		}
+						
+		float propa;
+		float propCumul;
+		int index;
+		
+		//Reproduction avec selection aléatoire en fonction des poids
+		for(int i = 0; i < 5; i++) {
+			propa = r.nextFloat();
+			propCumul = 0;
+			index = 0;
+			
+			for(int j = 0; j < generation.size(); j++) {
+				propCumul += generation.get(j).getPropa();
+				if(propa < propCumul){
+					break;
+				} else {
+					index++;
+				}
+			}
+						
+			Solution solution = new Solution();
+			solution.setLieux(generation.get(index).getLieux());
+			solution.setPrix(generation.get(index).getPrix());
+			
+			solutions.add(solution);
 		}
 		
 		System.out.println("Solution reproduitent :" + iteration);
-		for(Entry<BitSet, Float> b : solutions.entrySet()) {
-			System.out.println(b.toString());
+		for(Solution s : solutions) {
+			System.out.println(s.toString());
 		}
 		
-		keys = new ArrayList<BitSet>(solutions.keySet());
-		
+		Solution solution;
+				
 		//Croisements ou mutations en fonction d'un random
-		for(Entry<BitSet,Float> solution : solutions.entrySet()) {
-			if(r.nextFloat() < 0.1){
+		for(int k = 0; k < solutions.size(); k++) {
+			solution = solutions.get(k);
+			if(r.nextFloat() < 0.25){
 				//Mutation
-				solution.getKey().flip(r.nextInt(solution.getKey().size()));
+				solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
 			}
 			else {
 				//Croisement
-				index = r.nextInt(solution.getKey().size());
-				if(i + 1 < keys.size()){
-					temp = (BitSet) keys.get(i + 1);
+				index = r.nextInt(solution.getLieux().size());
+				if(k + 1 < solutions.size()){
+					temp = solutions.get(k + 1);
 				} else {
-					temp = (BitSet) keys.get(0);
+					temp = solutions.get(0);
 				}
-				for(int k = index; k < solution.getKey().size(); k++) {
-					solution.getKey().set(k, temp.get(k));
+				for(int l = index; l < solution.getLieux().size(); l++) {
+					solution.getLieux().set(l, temp.getLieux().get(l));
 				}
 			}
 
 			//Calcul du prix de la solution
-			prix = calculPrixSolution(solution.getKey());
-			solution.setValue(prix);
-			i++;
+			prix = calculPrixSolution(solution.getLieux());
+			solution.setPrix(prix);
+			solution.setPropa(0);
 		}
 
 		//Rappel de la fonction avec la nouvelle generation
