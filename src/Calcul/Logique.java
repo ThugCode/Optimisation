@@ -26,6 +26,7 @@ import Noeuds.Lieu;
 public class Logique extends Thread {
 
 	private InterfaceVisuelle affichage;
+	private String pathFichier;
 	private ArrayList<Lieu> lieux;
 	private GroupeAgence agences;
 	private ArrayList<Agence> barycentres;
@@ -35,7 +36,11 @@ public class Logique extends Thread {
 	private float distanceTotale;
 	private float prixTotal;
 	private int lieuTotal;
-	ArrayList<Trajet> meilleureSolution;
+	
+	private Random rand;
+	private boolean rafraichirCarte;
+	private int temperature;
+	private int iterations;
 	
 	public Logique(InterfaceVisuelle pAffichage)
 	{
@@ -43,11 +48,21 @@ public class Logique extends Thread {
 		
 		String filePath = new File("").getAbsolutePath();
 		filePath += "/Fichiers/ListeAgences_100.txt";
+		pathFichier = filePath;
 		
-    	agences = LireFichiers.LireAgence(filePath, 10);
+		lireAgences(20);
     	lieux = LireFichiers.LireLieuxPossible();
     	
+    	rand = new Random();
+    	setRafraichirCarte(true);
+    	setTemperature(1000);
+    	setIterations(500);
+    	
     	resetTrajets();
+	}
+	
+	public void lireAgences(int nombreVoisins) {
+		this.setAgences(LireFichiers.LireAgence(pathFichier, nombreVoisins));
 	}
 	
 	public void resetTrajets() {
@@ -66,6 +81,9 @@ public class Logique extends Thread {
 					+ lieu.getNom() + " (" + lieu.getNbPersonneAssociees() + ")");
 	}
 	
+	/**
+	 * @deprecated
+	 */
 	public void trajetAuHasard() {
 		
 		int random;
@@ -84,6 +102,9 @@ public class Logique extends Thread {
 		}
 	}
 
+	/**
+	 * @deprecated
+	 */
 	public void trajetAuPlusPres() {
 		
 		resetTrajets();
@@ -115,9 +136,64 @@ public class Logique extends Thread {
 			trajets.add(trajet);
 			
 			distanceTotale += trajet.getDistanceKm();
-			prixTotal += trajet.getDistanceKm()*agence.getNbpersonnes()*0.8;
+			prixTotal += trajet.getDistanceKm()*agence.getNbpersonnes()*Commun.PRIX_TRAJET;
 			best.setNbPersonneAssociees(best.getNbPersonneAssociees()+agence.getNbpersonnes());
 		}
+	}
+	
+	/**
+	 * Lancement du recuit simulé sur les barycentres.
+	 */
+	public void recuitSimuleBarycentre() {
+		
+		float bestPrix = Float.MAX_VALUE;
+		float bestDistance = 0;
+		int bestLieu = 0;
+		ArrayList<Trajet> bestSolution = null;
+		ArrayList<Agence> bestBary = null;
+		
+		Collections.shuffle(agences);
+		
+		for(int i = 1; i <= iterations; i++) {
+			
+			int indexSwap = trajetBarycentre();
+			
+			System.out.println("Prix solution "+i+" : " + prixTotal);
+			
+			if(prixTotal < bestPrix){
+				bestSolution = trajets;
+				bestPrix = prixTotal;
+				bestBary = barycentres;
+				bestDistance = distanceTotale;
+				bestLieu = lieuTotal;
+				System.out.println("Solution adoptée (Meilleure)");
+			} else {
+				if(rand.nextFloat() > Math.exp( -( (prixTotal - bestPrix) / temperature ) ) ) {
+					Collections.swap(agences, 0, indexSwap);
+					System.out.println("Solution rejetée");
+				} else {
+					System.out.println("Solution adoptée (Moins bonne)");
+				}
+			}
+			
+			if(rafraichirCarte) {
+				//Rafraichissement de la carte
+				affichage.update();
+				//Attente avant d'effectuer une itération
+				try { Thread.sleep(100);
+				} catch (InterruptedException e) {}
+			}
+		}
+		
+		//Affichage du meilleur résultat trouvé
+		//Mise à jour des champs avec le meilleur résultat trouvé
+		JOptionPane.showMessageDialog(null, "La meilleure solution donne un prix de : "+bestPrix+" €");
+		trajets = bestSolution;
+		prixTotal = bestPrix;
+		barycentres = bestBary;
+		distanceTotale = bestDistance;
+		lieuTotal = bestLieu;
+		affichage.update();
 	}
 	
 	/**
@@ -127,7 +203,7 @@ public class Logique extends Thread {
 	 * -> Recherche du lieu le plus proche du barycentre
 	 * -> Association de chaque agence avec le lieu
 	 */
-	public void trajetBarycentre() {
+	public int trajetBarycentre() {
 		
 		//Initialisation compteur lieux ou groupe d'agence
 		int courant = 0;
@@ -146,7 +222,8 @@ public class Logique extends Thread {
 		
 		//Mélange de la liste des agences pour que le récursif
 		//donne des résutlats toujours différents
-		Collections.shuffle(agences);
+		int indexSwap = rand.nextInt(agences.size());
+		Collections.swap(agences, 0, indexSwap);
 		
 		//Parcours de toutes les agences pour leur trouver un groupe
 		//en fonction de leurs voisins en récursif
@@ -208,12 +285,14 @@ public class Logique extends Thread {
 				lieuPersonne = trajet.getLieu().getNbPersonneAssociees();
 				
 				distanceTotale += distance;
-				prixTotal += distance*agencePersonne*0.8;
+				prixTotal += distance*agencePersonne*Commun.PRIX_TRAJET;
 				trajet.getLieu().setNbPersonneAssociees(lieuPersonne+agencePersonne);
 				
 				checkLieuPersonne(trajet.getLieu());
 			}
 		}
+		
+		return indexSwap;
 	}
 	
 	/**
@@ -268,265 +347,13 @@ public class Logique extends Thread {
 	}
 	
 	
-	public void temperatureBarycentre() {
-		
-		trajetBarycentre();
-		affichage.update();
-		
-		float bestPrix = prixTotal;
-		ArrayList<Trajet> bestSolution = trajets;
-		
-		System.out.println("Prix solution 1 : " + bestPrix);
-		
-		for(int i = 0; i < 100; i++) {
-			
-			trajetBarycentre();
-			
-			if(prixTotal < bestPrix){
-				bestSolution = trajets;
-				bestPrix = prixTotal;
-			}
-			
-			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
-
-			affichage.update();
-			
-			try { Thread.sleep(100);
-			} catch (InterruptedException e) {}
-		}
-		
-		JOptionPane.showMessageDialog(null, "La meilleure solution donne un prix de : "+bestPrix+" €");
-		
-		trajets = bestSolution;
-		prixTotal = bestPrix;
-		
-		affichage.update();
-	}
 	
 	
 	
-	public void recuitBarycentre() {
-		
-		float distance;
-		int agencePersonne;
-		int nbIterations = 100;
-		
-		trajetBarycentre();
-		affichage.update();
-		
-		Agence agenceADeplace = null;
-		float meilleurPrix = prixTotal;
-		
-		meilleureSolution = trajets;
-		
-		System.out.println("Prix solution 1 : " + meilleurPrix);
-		
-		for(int i = 0; i < nbIterations; i++) {
-			
-			agenceADeplace = agences.get(new Random().nextInt(agences.size()));
-			
-			Trajet trajetEnTrop = agenceADeplace.getTrajets().get(0);
-			
-			trajets.remove(trajetEnTrop);
-			
-			distance = trajetEnTrop.getDistanceKm();
-			agencePersonne = trajetEnTrop.getAgence().getNbpersonnes();
-			
-			distanceTotale -= distance;
-			prixTotal -= distance*agencePersonne*0.8;
-			
-			Agence agence = trajetEnTrop.getAgence();
-			agence.getTrajets().clear();
-			
-			recursifBarycentre(agence);
-			
-			if(prixTotal < meilleurPrix){
-				meilleureSolution = trajets;
-				meilleurPrix = prixTotal;
-			}
-			
-		
-			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
-
-			affichage.update();
-			
-			try { Thread.sleep(100);
-			} catch (InterruptedException e) {}
-		}
-	}
 	
-	private void recursifBarycentre(Agence agenceDeplacee) {
-		
-		Lieu lieuPlusProche = lieuAssociePlusProche(agenceDeplacee);
-		Trajet trajet = new Trajet(agenceDeplacee,lieuPlusProche);
-		distanceTotale += trajet.getDistanceKm();
-		prixTotal += trajet.getDistanceKm()*agenceDeplacee.getNbpersonnes()*0.8;
-		lieuPlusProche.setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+agenceDeplacee.getNbpersonnes());
-		
-		lieuPlusProche.getTrajets().add(trajet);
-		agenceDeplacee.getTrajets().add(trajet);
-		trajets.add(trajet);
-		//System.out.println("Ajout Lieu : "+trajet.getLieu().getNom() + " " + trajet.getLieu().isRetour()+ " \nAgence : "+trajet.getAgence().getNom());
-		
-		if(lieuPlusProche.getNbPersonneAssociees() > 60) {
-			
-			int difference;
-			int differenceMin = Integer.MAX_VALUE;
-			Trajet trajetADeplacer = null;
-			
-			for(Trajet trajetPossible : lieuPlusProche.getTrajets()) {
-				
-				difference = trajetPossible.getAgence().getNbpersonnes() - agenceDeplacee.getNbpersonnes();
-				//System.out.println(difference);
-				if(difference >= 0 && difference < differenceMin ) {
-					differenceMin = difference;
-					trajetADeplacer = trajetPossible;
-				}
-			}
-			//System.out.println("Supprime Lieu : "+trajetADeplacer.getLieu().getNom() + " \nAgence : "+trajetADeplacer.getAgence().getNom());
-			trajets.remove(trajetADeplacer);
-			distanceTotale -= trajetADeplacer.getDistanceKm();
-			prixTotal -= trajetADeplacer.getDistanceKm()*trajetADeplacer.getAgence().getNbpersonnes()*0.8;
-			lieuPlusProche.setNbPersonneAssociees(lieuPlusProche.getNbPersonneAssociees() - trajetADeplacer.getAgence().getNbpersonnes());
-		
-			Agence agence = trajetADeplacer.getAgence();
-			agence.getTrajets().clear();
-			
-			affichage.update();
-			
-			recursifBarycentre(agence);
-		}
-		
-		
-		
-		checkLieuPersonne(trajet.getLieu());
-	}
-
-	public void recuitSimule() {
-		
-
-		Thread t1 = new Thread(new Runnable() {
-		     public void run() {
-		     
-		float distance;
-		int nbAgenceMin;
-		int agencePersonne;
-		int nbIterations = 100;
-		
-		trajetAuPlusPres();
-		affichage.update();
-		
-		Lieu lieuASupprimer = null;
-		float meilleurPrix = prixTotal;
-		
-		meilleureSolution = trajets;
-		
-		System.out.println("Prix solution 1 : " + meilleurPrix);
-		
-		for(int i = 0; i < nbIterations; i++) {
-			
-			nbAgenceMin = Integer.MAX_VALUE;
-			
-			for(Lieu lieu : lieux) {
-				if(lieu.isAssocie() 
-				&& (lieu.getTrajets().size() < nbAgenceMin)){
-					lieuASupprimer = lieu;
-					nbAgenceMin = lieu.getTrajets().size();
-				}
-			}
-			
-			ArrayList<Trajet> temp = lieuASupprimer.getTrajets();
-			lieuASupprimer.reset();
-			prixTotal -= Commun.PRIX_LIEU;
-			lieuTotal--;
-			
-			for(Trajet trajetEnTrop : temp) {
-				trajets.remove(trajetEnTrop);
-				
-				distance = trajetEnTrop.getDistanceKm();
-				agencePersonne = trajetEnTrop.getAgence().getNbpersonnes();
-				
-				distanceTotale -= distance;
-				prixTotal -= distance*agencePersonne;
-				
-				Agence agence = trajetEnTrop.getAgence();
-				agence.getTrajets().clear();
-				
-				recursifRecuit(agence, 0);
-			}
-			
-			if(prixTotal < meilleurPrix){
-				meilleureSolution = trajets;
-				meilleurPrix = prixTotal;
-			}
-			
-			System.out.println("Prix solution "+(i+2)+" : " + prixTotal);
-			
-			affichage.update();
-			
-			try { Thread.sleep(100);
-			} catch (InterruptedException e) {}
-		}
-		
-		     }
-		});  
-		t1.start();
-	}
 	
-	private void recursifRecuit(Agence agenceDeplacee, int level) {
-		
-		Lieu lieuPlusProche = lieuAssociePlusProche(agenceDeplacee);
-		Trajet trajet = new Trajet(agenceDeplacee,lieuPlusProche);
-		distanceTotale += trajet.getDistanceKm();
-		prixTotal += trajet.getDistanceKm()*agenceDeplacee.getNbpersonnes();
-		lieuPlusProche.setNbPersonneAssociees(trajet.getLieu().getNbPersonneAssociees()+agenceDeplacee.getNbpersonnes());
-		
-		
-		if(lieuPlusProche.getNbPersonneAssociees() > 60) {
-			
-			int difference;
-			int differenceMin = Integer.MAX_VALUE;
-			Trajet trajetADeplacer = null;
-			
-			if(lieuPlusProche.getTrajets().size() <= 0) {
-				System.out.println("trajets lieuPlusProche vide");
-			}
-			System.out.println("-------------------");
-			for(Trajet trajetPossible : lieuPlusProche.getTrajets()) {
-				
-				difference = trajetPossible.getAgence().getNbpersonnes() - agenceDeplacee.getNbpersonnes();
-				System.out.println(difference);
-				if(difference >= 0 && difference < differenceMin ) {
-					differenceMin = difference;
-					trajetADeplacer = trajetPossible;
-				}
-			}
-			
-			if(trajetADeplacer == null) {
-				System.out.println("trajetADeplacer null");
-			}
-		
-			trajets.remove(trajetADeplacer);
-			distanceTotale -= trajetADeplacer.getDistanceKm();
-			prixTotal -= trajetADeplacer.getDistanceKm()*trajetADeplacer.getAgence().getNbpersonnes();
-			lieuPlusProche.setNbPersonneAssociees(lieuPlusProche.getNbPersonneAssociees() - trajetADeplacer.getAgence().getNbpersonnes());
-		
-			Agence agence = trajetADeplacer.getAgence();
-			agence.getTrajets().clear();
-			
-			System.out.println("LEVEL :" +level);
-			
-			affichage.update();
-			
-			recursifRecuit(agence, level+1);
-		}
-		
-		lieuPlusProche.getTrajets().add(trajet);
-		agenceDeplacee.getTrajets().add(trajet);
-		trajets.add(trajet);
-		
-		checkLieuPersonne(trajet.getLieu());
-	}
+	
+	
 	
 	public void algogene() {
 		
@@ -558,7 +385,10 @@ public class Logique extends Thread {
 	
 	private void recursifAlgogene(HashMap<BitSet,Float> generation, int iteration) {
 		HashMap<BitSet,Float> solutions = new HashMap<BitSet,Float>();
+<<<<<<< HEAD
 		List<BitSet> keys;
+=======
+>>>>>>> origin/master
 		Random r = new Random();
 		float prix;
 		int index;
@@ -588,6 +418,7 @@ public class Logique extends Thread {
 		
 		//Reproduction avec selection aléatoire en fonction des poids
 		solutions = generation;
+<<<<<<< HEAD
 		
 		float propa = r.nextFloat();
 		int j = 0;
@@ -601,6 +432,11 @@ public class Logique extends Thread {
 		solutions.put(cles.get(j-1), new Float(0.0));
 		
 		keys = new ArrayList<BitSet>(solutions.keySet());
+=======
+		//TODO
+
+		ArrayList<BitSet> keys = new ArrayList<BitSet>(solutions.keySet());
+>>>>>>> origin/master
 
 		//Croisements ou mutations en fonction d'un random
 		for(Entry<BitSet,Float> solution : solutions.entrySet()) {
@@ -652,28 +488,6 @@ public class Logique extends Thread {
 		return new float[] { x, y };
 	}
 	
-	private Lieu lieuAssociePlusProche(Agence agence) {
-		Trajet temp = new Trajet();
-		temp.setAgence(agence);
-		Lieu best = null;
-		float min = Float.MAX_VALUE;
-		
-		for (Lieu lieu : lieux) {
-			if(lieu.isAssocie() && lieu.isRetour()) {
-				temp.setLieu(lieu);
-				if(best == null || temp.getDistanceKm() < min) {
-					best = lieu;
-					min = temp.getDistanceKm();
-				}
-			} else {
-				//System.out.println("Lieu interdit : "+lieu.getNom());
-				lieu.setRetour(true);
-			}
-		}
-		//System.out.println("-------");
-		best.setRetour(false);
-		return best;
-	}
 	
 	private float calculPrixSolution(BitSet solution) {
 		//Copie de la liste des agences afin de pouvoir en supprimer
@@ -715,7 +529,7 @@ public class Logique extends Thread {
 					agencesTmp.remove(best);
 					temp.setAgence(best);
 					courant.setNbPersonneAssociees(nbPersonnes);
-					prix += temp.getDistanceKm()*best.getNbpersonnes()*0.8;
+					prix += temp.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET;
 				}
 				else {
 					nonPlein = false;
@@ -776,6 +590,30 @@ public class Logique extends Thread {
 		return nbLieuxMin;
 	}
 
+	public boolean isRafraichirCarte() {
+		return rafraichirCarte;
+	}
+
+	public int getTemperature() {
+		return temperature;
+	}
+
+	public int getIterations() {
+		return iterations;
+	}
+
+	public String getPathFichier() {
+		return pathFichier;
+	}
+
+	public void setPathFichier(String pathFichier) {
+		this.pathFichier = pathFichier;
+	}
+
+	public void setIterations(int iterations) {
+		this.iterations = iterations;
+	}
+
 	public void setNbLieuxMin(int nbLieuxMin) {
 		this.nbLieuxMin = nbLieuxMin;
 	}
@@ -783,5 +621,13 @@ public class Logique extends Thread {
 	public void setAgences(GroupeAgence listes) {
 		resetTrajets();
 		this.agences = listes;
+	}
+	
+	public void setRafraichirCarte(boolean rafraichirCarte) {
+		this.rafraichirCarte = rafraichirCarte;
+	}
+
+	public void setTemperature(int temperature) {
+		this.temperature = temperature;
 	}
 }

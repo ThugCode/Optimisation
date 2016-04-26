@@ -8,6 +8,10 @@ public class GroupeAgence extends ArrayList<Agence> {
 	private int numero;
 	private int nombrePersonne;
 	
+	public GroupeAgence(GroupeAgence groupeAgence) {
+		super(groupeAgence);
+	}
+	
 	public GroupeAgence() {
 		super();
 		setNumero(0);
