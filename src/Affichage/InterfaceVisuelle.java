@@ -28,9 +28,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import Arcs.Lien;
 import Arcs.Trajet;
 import Calcul.Logique;
-import Commun.LireFichiers;
 import Noeuds.Agence;
 import Noeuds.Lieu;
+import Commun.*;
 
 /*
  * Classe d'affichage de l'interface
@@ -40,7 +40,7 @@ public class InterfaceVisuelle extends JFrame
 	private static final long serialVersionUID = 1L;
 	
 	private final int LARGEUR = 1000;
-	private final int HAUTEUR = 600;
+	private final int HAUTEUR = 610;
 	
 	private double facteur;
 	private boolean afficherTrajet;
@@ -61,6 +61,9 @@ public class InterfaceVisuelle extends JFrame
 	private JCheckBox cb_barycentre;
 	private JCheckBox cb_agence;
 	private JCheckBox cb_liensAgence;
+	private JCheckBox cb_rafraichirCarte;
+	private JTextField txt_minimumLieu;
+	private JTextField txt_totalPersonne;
 	private JTextField txt_totalLieu;
 	private JTextField txt_totalDistance;
 	private JTextField txt_totalPrix;
@@ -99,11 +102,19 @@ public class InterfaceVisuelle extends JFrame
 		
 		int height = 10;
 		
-		JLabel lbl_line_noeuds = new JLabel("Noeuds --------");
+		cb_rafraichirCarte = new JCheckBox("Maj de la carte en temps réel");
+		cb_rafraichirCarte.setSelected(true);
+		cb_rafraichirCarte.addItemListener(this);
+		cb_rafraichirCarte.setBounds(20, height, 280, 30);
+		pnl_control.add(cb_rafraichirCarte);
+		
+		height += 25;
+		
+		JLabel lbl_line_noeuds = new JLabel("<html><font color=orange>Noeuds -------------------</font></html>");
 		lbl_line_noeuds.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_noeuds);
 		
-		height += 30;
+		height += 20;
 		
 		cb_lieu = new JCheckBox("<html>Afficher les lieux <font color=red>・</font></html>");
 		cb_lieu.setSelected(true);
@@ -111,7 +122,7 @@ public class InterfaceVisuelle extends JFrame
 		cb_lieu.setBounds(20, height, 240, 30);
 		pnl_control.add(cb_lieu);
 		
-		height += 30;
+		height += 20;
 		
 		cb_agence = new JCheckBox("Afficher les agences ●");
 		cb_agence.setSelected(true);
@@ -126,11 +137,11 @@ public class InterfaceVisuelle extends JFrame
 		
 		height += 30;
 		
-		JLabel lbl_line_arcs = new JLabel("Arcs ------------");
+		JLabel lbl_line_arcs = new JLabel("<html><font color=orange>Arcs -------------------</font></html>");
 		lbl_line_arcs.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_arcs);
 		
-		height += 30;
+		height += 20;
 		
 		cb_trajet = new JCheckBox("Afficher les trajets ---");
 	    cb_trajet.setSelected(true);
@@ -138,7 +149,7 @@ public class InterfaceVisuelle extends JFrame
 	    cb_trajet.setBounds(20, height, 240, 30);
 		pnl_control.add(cb_trajet);
 		
-		height += 30;
+		height += 20;
 		
 		cb_liensAgence = new JCheckBox("<html>Afficher les liens d'agences <font color=blue>---</font></html>");
 		cb_liensAgence.setSelected(false);
@@ -148,7 +159,7 @@ public class InterfaceVisuelle extends JFrame
 		
 		height += 30;
 		
-		JLabel lbl_line_recuit = new JLabel("Recuit simulé ------------");
+		JLabel lbl_line_recuit = new JLabel("<html><font color=orange>Recuit simulé ------------</font></html>");
 		lbl_line_recuit.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_recuit);
 		
@@ -174,7 +185,7 @@ public class InterfaceVisuelle extends JFrame
 		lbl_nombreVoisinsAgences.setBounds(20, height, 250, 30);
 		pnl_control.add(lbl_nombreVoisinsAgences);
 		
-		txt_nombreVoisinsAgences = new JTextField("20");
+		txt_nombreVoisinsAgences = new JTextField("30");
 		txt_nombreVoisinsAgences.setBounds(260, height, 40, 30);
 		txt_nombreVoisinsAgences.addKeyListener(this);
 		pnl_control.add(txt_nombreVoisinsAgences);
@@ -185,7 +196,8 @@ public class InterfaceVisuelle extends JFrame
 		lbl_temperature.setBounds(20, height, 90, 30);
 		pnl_control.add(lbl_temperature);
 		
-		slider_temperature = new JSlider(JSlider.HORIZONTAL, 1, 10000, 500);
+		slider_temperature = new JSlider(JSlider.HORIZONTAL, 1, 50000, 5000);
+		slider_temperature.setValue(100000);
 		slider_temperature.setBounds(120, height-8, 180, 50);
 		slider_temperature.addChangeListener(this);
 		pnl_control.add(slider_temperature);
@@ -200,7 +212,7 @@ public class InterfaceVisuelle extends JFrame
 		
 		height += 30;
 		
-		JLabel lbl_line_algogene = new JLabel("Algogène ------------");
+		JLabel lbl_line_algogene = new JLabel("<html><font color=orange>Algogène ------------</font></html>");
 		lbl_line_algogene.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_algogene);
 		
@@ -213,41 +225,65 @@ public class InterfaceVisuelle extends JFrame
 		
 		height += 40;
 		
-		JLabel lbl_line_resultats = new JLabel("Résultats ------------");
+		JLabel lbl_line_resultats = new JLabel("<html><font color=orange>Résultats ------------");
 		lbl_line_resultats.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_resultats);
+		
+		height += 20;
+		
+		JLabel lbl_totalPersonne = new JLabel("Nombre de personnes :");
+		lbl_totalPersonne.setBounds(20, height, 160, 30);
+		pnl_control.add(lbl_totalPersonne);
+		
+		txt_totalPersonne = new JTextField();
+		txt_totalPersonne.setText(logique.getAgences().getNombrePersonne()+"");
+		txt_totalPersonne.setEditable(false);
+		txt_totalPersonne.setBounds(180, height, 120, 30);
+		pnl_control.add(txt_totalPersonne);
+		
+		height += 30;
+		
+		JLabel lbl_lieuMinimum = new JLabel("Lieux minimum :");
+		lbl_lieuMinimum.setBounds(20, height, 160, 30);
+		pnl_control.add(lbl_lieuMinimum);
+		
+		txt_minimumLieu = new JTextField();
+		txt_minimumLieu.setText(Math.ceil(logique.getAgences().getNombrePersonne()/Commun.MAX_PERSONNE)+"");
+		txt_minimumLieu.setEditable(false);
+		txt_minimumLieu.setBounds(180, height, 120, 30);
+		pnl_control.add(txt_minimumLieu);
 		
 		height += 30;
 		
 		JLabel lbl_totalLieu = new JLabel("Lieux utilisés :");
-		lbl_totalLieu.setBounds(20, height, 120, 30);
+		lbl_totalLieu.setBounds(20, height, 160, 30);
 		pnl_control.add(lbl_totalLieu);
 		
 		txt_totalLieu = new JTextField();
 		txt_totalLieu.setEditable(false);
-		txt_totalLieu.setBounds(160, height, 120, 30);
+		txt_totalLieu.setBounds(180, height, 120, 30);
 		pnl_control.add(txt_totalLieu);
 		
-		height += 40;
+		height += 30;
 		
 		JLabel lbl_totalDistance = new JLabel("Distance totale :");
-		lbl_totalDistance.setBounds(20, height, 120, 30);
+		lbl_totalDistance.setBounds(20, height, 160, 30);
 		pnl_control.add(lbl_totalDistance);
 		
 		txt_totalDistance = new JTextField();
 		txt_totalDistance.setEditable(false);
-		txt_totalDistance.setBounds(160, height, 120, 30);
+		txt_totalDistance.setBounds(180, height, 120, 30);
 		pnl_control.add(txt_totalDistance);
 		
-		height += 40;
+		height += 30;
 		
 		JLabel lbl_totalPrix = new JLabel("Prix totale :");
-		lbl_totalPrix.setBounds(20, height, 120, 30);
+		lbl_totalPrix.setBounds(20, height, 160, 30);
 		pnl_control.add(lbl_totalPrix);
 		
 		txt_totalPrix = new JTextField();
 		txt_totalPrix.setEditable(false);
-		txt_totalPrix.setBounds(160, height, 120, 30);
+		txt_totalPrix.setBounds(180, height, 120, 30);
 		pnl_control.add(txt_totalPrix);
 	}
 
@@ -261,7 +297,6 @@ public class InterfaceVisuelle extends JFrame
 		//int basX = (int)(700*facteur);
 		int basY = (int)(570*facteur);
 		g.scale(1/facteur, 1/facteur);
-		
 		
 		//Affichage des lieux
 		if(afficherLieu) {
@@ -353,6 +388,8 @@ public class InterfaceVisuelle extends JFrame
 		    if(returnVal == JFileChooser.APPROVE_OPTION) {
 		    	logique.setPathFichier(chooser.getSelectedFile().getPath());
 		    	logique.lireAgences(Integer.parseInt(txt_nombreVoisinsAgences.getText()));
+		    	txt_totalPersonne.setText(logique.getAgences().getNombrePersonne()+"");
+		    	txt_minimumLieu.setText(Math.ceil(logique.getAgences().getNombrePersonne()/Commun.MAX_PERSONNE)+"");
 		    	carte.repaint();
 		    }
 		}
@@ -371,6 +408,8 @@ public class InterfaceVisuelle extends JFrame
 	    	afficherLienAgence = ! afficherLienAgence;
 	    } else if (source == cb_barycentre) {
 	    	afficherBarycentre = ! afficherBarycentre;
+	    } else if (source == cb_rafraichirCarte) {
+	    	logique.setRafraichirCarte(!logique.isRafraichirCarte());
 	    }
 
 	    carte.repaint();
@@ -384,12 +423,24 @@ public class InterfaceVisuelle extends JFrame
 	    }
 	}
 	
+	public static boolean estEntier(String str)  
+	{  
+		try { Integer.parseInt(str); }  
+		catch(NumberFormatException nfe)  
+		{ return false; }  
+		return true;  
+	}
+	
 	@Override
 	public void keyReleased(KeyEvent e) {
 		if (e.getSource() == txt_nombreVoisinsAgences) {
-			logique.lireAgences(Integer.parseInt(txt_nombreVoisinsAgences.getText()));
+			if(estEntier(txt_nombreVoisinsAgences.getText())) {
+				logique.lireAgences(Integer.parseInt(txt_nombreVoisinsAgences.getText()));
+			}
 		} else if(e.getSource() == txt_iterations) {
-			logique.setIterations(Integer.parseInt(txt_iterations.getText()));
+			if(estEntier(txt_iterations.getText())) {
+				logique.setIterations(Integer.parseInt(txt_iterations.getText()));
+			}
 		}
 	}
 	@Override

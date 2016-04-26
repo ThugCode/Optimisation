@@ -33,38 +33,52 @@ public class Logique extends Thread {
 	private ArrayList<Trajet> trajets;
 	private int nbLieuxMin;
 	
-	private float distanceTotale;
-	private float prixTotal;
-	private int lieuTotal;
-	
 	private Random rand;
 	private boolean rafraichirCarte;
 	private int temperature;
 	private int iterations;
+	private float distanceTotale;
+	private float prixTotal;
+	private int lieuTotal;
 	
+	/**
+	 * Constructeur
+	 * @param pAffichage
+	 */
 	public Logique(InterfaceVisuelle pAffichage)
 	{
 		affichage = pAffichage;
 		
+		//Lecture du fichier 100 agences par défaut
 		String filePath = new File("").getAbsolutePath();
 		filePath += "/Fichiers/ListeAgences_100.txt";
 		pathFichier = filePath;
 		
-		lireAgences(20);
+		//Enregistrer les agences et les lieux
+		lireAgences(30);
     	lieux = LireFichiers.LireLieuxPossible();
     	
+    	//Initialisation des variables pour le recuit simulé
     	rand = new Random();
     	setRafraichirCarte(true);
-    	setTemperature(1000);
+    	setTemperature(100000);
     	setIterations(500);
     	
+    	//Initialisation des trajets
     	resetTrajets();
 	}
 	
+	/**
+	 * Enregistrer les agences et leurs voisins
+	 * @param nombreVoisins
+	 */
 	public void lireAgences(int nombreVoisins) {
 		this.setAgences(LireFichiers.LireAgence(pathFichier, nombreVoisins));
 	}
 	
+	/**
+	 * Réinitialisation des variables et listes
+	 */
 	public void resetTrajets() {
 		trajets = new ArrayList<Trajet>();
 		barycentres = new ArrayList<Agence>();
@@ -74,7 +88,10 @@ public class Logique extends Thread {
     	lieuTotal = 0;
 	}
 	
-
+	/**
+	 * Vérifie si le lieu n'a pas plus de 60 personnes associées
+	 * @param lieu
+	 */
 	private void checkLieuPersonne(Lieu lieu) {
 		if(lieu.getNbPersonneAssociees() > Commun.MAX_PERSONNE)
 			System.out.println("Au dela de " + Commun.MAX_PERSONNE + " personnes pour le lieu " 
@@ -82,6 +99,7 @@ public class Logique extends Thread {
 	}
 	
 	/**
+	 * Fonction de test des trajets au hasard
 	 * @deprecated
 	 */
 	public void trajetAuHasard() {
@@ -103,6 +121,7 @@ public class Logique extends Thread {
 	}
 
 	/**
+	 * Fonction de test des trajets au plus près
 	 * @deprecated
 	 */
 	public void trajetAuPlusPres() {
@@ -146,32 +165,47 @@ public class Logique extends Thread {
 	 */
 	public void recuitSimuleBarycentre() {
 		
-		float bestPrix = Float.MAX_VALUE;
-		float bestDistance = 0;
+		//Initialisation des variables de sauvegarde 
+		//de la meilleure solution rencontrée
 		int bestLieu = 0;
+		float bestDistance = 0;
+		float bestPrix = Float.MAX_VALUE;
 		ArrayList<Trajet> bestSolution = null;
 		ArrayList<Agence> bestBary = null;
 		
+		//Mélange de la liste des agences
 		Collections.shuffle(agences);
 		
 		for(int i = 1; i <= iterations; i++) {
 			
+			//Construction des trajets par barycentre
+			//Retour de l'index de l'agence à partir de laquelle
+			//le récursif a effectué les groupes d'agence
 			int indexSwap = trajetBarycentre();
 			
+			//Affichage du prix
 			System.out.println("Prix solution "+i+" : " + prixTotal);
 			
-			if(prixTotal < bestPrix){
+			//Si le prix est inférieur, on adopte la solution en temps que
+			//meilleure solution et nouvelle solution de départ du recursif
+			//et on enregistre les variables utiles
+			if(prixTotal < bestPrix) {
 				bestSolution = trajets;
 				bestPrix = prixTotal;
 				bestBary = barycentres;
 				bestDistance = distanceTotale;
 				bestLieu = lieuTotal;
 				System.out.println("Solution adoptée (Meilleure)");
-			} else {
+			} 
+			else //Sinon, on effectue le calcul avec la température
+			{
+				//Si le random est supérieur on rejete la solution et on reprend la solution précédente
 				if(rand.nextFloat() > Math.exp( -( (prixTotal - bestPrix) / temperature ) ) ) {
 					Collections.swap(agences, 0, indexSwap);
 					System.out.println("Solution rejetée");
-				} else {
+				} 
+				else //Sinon on adopte la solution comme nouvelle solution de départ du recursif
+				{
 					System.out.println("Solution adoptée (Moins bonne)");
 				}
 			}
@@ -205,7 +239,7 @@ public class Logique extends Thread {
 	 */
 	public int trajetBarycentre() {
 		
-		//Initialisation compteur lieux ou groupe d'agence
+		//Initialisation compteur de lieux ou groupes d'agences
 		int courant = 0;
 		//Initialisation de la liste des groupes d'agences
 		ArrayList<GroupeAgence> listeGroupes = new ArrayList<GroupeAgence>();
@@ -220,13 +254,15 @@ public class Logique extends Thread {
 			lieu.reset();
 		}
 		
-		//Mélange de la liste des agences pour que le récursif
-		//donne des résutlats toujours différents
+		//Changement d'agence de départ pour le récursif
+		//pour donne des résutlats toujours différents.
+		//On inverse la première agence avec une agence au hasard dans la liste
+		//C'est ici que l'on prend un voisin de la solution précédente.
 		int indexSwap = rand.nextInt(agences.size());
 		Collections.swap(agences, 0, indexSwap);
 		
 		//Parcours de toutes les agences pour leur trouver un groupe
-		//en fonction de leurs voisins en récursif
+		//en fonction de leurs voisins en récursif et ainsi avoir des "cercles" d'agences.
 		for (Agence agence : agences) {
 			if(agence.getGroupe() == -1) {
 				listeGroupes = recursifVoisin(listeGroupes, agence, courant);
@@ -236,7 +272,7 @@ public class Logique extends Thread {
 		
 		float[] coord;						//Coordonnees du barycentre
 		float min;							//Plus petite distance
-		Lieu lieuLePlusPres = null;			//Lieu le plus pres de l'agence barycentre
+		Lieu lieuLePlusPres = null;			//Lieu le plus près de l'agence barycentre
 		Agence barycentre = new Agence();	//Barycentre de toutes les agences du groupe
 		Trajet temp = new Trajet();			//Trajet entre lieux/barycentre pour calculer les distances
 		
@@ -264,6 +300,7 @@ public class Logique extends Thread {
 					}
 				}
 			}
+			//Ajout du lieu à la solution et au prix
 			lieuLePlusPres.setAssocie(true);
 			prixTotal += Commun.PRIX_LIEU;
 			lieuTotal ++;
@@ -280,11 +317,14 @@ public class Logique extends Thread {
 				agence.getTrajets().add(trajet);
 				trajets.add(trajet);
 				
+				//Calcul de la distance entre chaque agence et le lieu
+				//et le nombre de personnes associées.
 				distance = trajet.getDistanceKm();
 				agencePersonne = trajet.getAgence().getNbpersonnes();
 				lieuPersonne = trajet.getLieu().getNbPersonneAssociees();
 				
-				distanceTotale += distance;
+				//Modification de la distance totale, du prix total et du nombre de personne dans le lieu
+				distanceTotale += distance*agencePersonne;
 				prixTotal += distance*agencePersonne*Commun.PRIX_TRAJET;
 				trajet.getLieu().setNbPersonneAssociees(lieuPersonne+agencePersonne);
 				
@@ -563,7 +603,7 @@ public class Logique extends Thread {
 	public ArrayList<Lieu> getLieux() {
 		return lieux;
 	}
-	public ArrayList<Agence> getAgences() {
+	public GroupeAgence getAgences() {
 		return agences;
 	}
 	public ArrayList<Agence> getBarycentres() {

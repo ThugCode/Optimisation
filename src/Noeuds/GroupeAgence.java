@@ -19,7 +19,7 @@ public class GroupeAgence extends ArrayList<Agence> {
 	}
 	
 	public int nombreLieuxMinimum() {
-		return (int) Math.ceil((double)nombrePersonne/60);
+		return (int) Math.ceil((double)nombrePersonne/Commun.Commun.MAX_PERSONNE);
 	}
 
 	public int getNumero() {
