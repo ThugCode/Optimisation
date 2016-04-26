@@ -9,6 +9,8 @@ public class Solution {
 	private Float propa;
 	
 	public Solution() {
+		this.lieux = new BitSet();
+		this.prix = Float.MAX_VALUE;
 	}
 	
 	public Solution(BitSet lieux, Float prix) {
