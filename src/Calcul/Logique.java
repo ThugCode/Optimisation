@@ -3,7 +3,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Random;
 
@@ -556,10 +558,11 @@ public class Logique extends Thread {
 	
 	private void recursifAlgogene(HashMap<BitSet,Float> generation, int iteration) {
 		HashMap<BitSet,Float> solutions = new HashMap<BitSet,Float>();
-		ArrayList keys;
+		List<BitSet> keys;
 		Random r = new Random();
 		float prix;
 		int index;
+		int sommeInverse = 0;
 		int i = 0;
 		BitSet temp;
 		
@@ -568,11 +571,36 @@ public class Logique extends Thread {
 			System.out.println(b.toString());
 		}
 
+		List<BitSet> cles = new ArrayList<BitSet>(generation.keySet());
+		
+		Collections.sort(cles,new Comparator<BitSet>() {
+			public int compare(BitSet b1, BitSet b2){
+				return generation.get(b1).compareTo(generation.get(b2));
+			}
+		});
+		
+		for(BitSet bitSet : cles) {
+			float valeur = generation.get(bitSet);
+			valeur = 1/valeur;
+			sommeInverse += valeur;
+			generation.put(bitSet, valeur);
+		}
+		
 		//Reproduction avec selection aléatoire en fonction des poids
 		solutions = generation;
-		//TODO
-
-		keys = new ArrayList(solutions.keySet());
+		
+		float propa = r.nextFloat();
+		int j = 0;
+		float propCumul = 0;
+		
+		while(j < cles.size() && propa > propCumul) {
+			propCumul += generation.get(cles.get(j));
+			j++;
+		}
+		
+		solutions.put(cles.get(j-1), new Float(0.0));
+		
+		keys = new ArrayList<BitSet>(solutions.keySet());
 
 		//Croisements ou mutations en fonction d'un random
 		for(Entry<BitSet,Float> solution : solutions.entrySet()) {
@@ -588,8 +616,8 @@ public class Logique extends Thread {
 				} else {
 					temp = (BitSet) keys.get(0);
 				}
-				for(int j = index; j < solution.getKey().size(); j++) {
-					solution.getKey().set(j, temp.get(j));
+				for(int k = index; k < solution.getKey().size(); k++) {
+					solution.getKey().set(k, temp.get(k));
 				}
 			}
 
