@@ -425,14 +425,11 @@ public class Logique extends Thread {
 	
 	private void recursifAlgogene(HashMap<BitSet,Float> generation, int iteration) {
 		HashMap<BitSet,Float> solutions = new HashMap<BitSet,Float>();
-<<<<<<< HEAD
 		List<BitSet> keys;
-=======
->>>>>>> origin/master
 		Random r = new Random();
 		float prix;
 		int index;
-		int sommeInverse = 0;
+		float sommeInverse = 0;
 		int i = 0;
 		BitSet temp;
 		
@@ -456,28 +453,36 @@ public class Logique extends Thread {
 			generation.put(bitSet, valeur);
 		}
 		
-		//Reproduction avec selection aléatoire en fonction des poids
-		solutions = generation;
-<<<<<<< HEAD
+		for(BitSet bitSet : cles) {
+			float valeur = generation.get(bitSet);
+			valeur = valeur/sommeInverse;
+			generation.put(bitSet, valeur);
+		}
+				
+		//Reproduction avec selection aléatoire en fonction des poids		
+		for(int l = 0; l < 5; l++) {
+			float propa = r.nextFloat();
+			int j = 0;
+			float propCumul = 0;
+			
+			while(j < cles.size() && propa > propCumul) {
+				/*System.out.println("j = " + j);
+				System.out.println("Propa cumul = " + propCumul);
+				System.out.println("Propa = " + generation.get(cles.get(j)));*/
+				propCumul += generation.get(cles.get(j));
+				j++;
+			}
 		
-		float propa = r.nextFloat();
-		int j = 0;
-		float propCumul = 0;
-		
-		while(j < cles.size() && propa > propCumul) {
-			propCumul += generation.get(cles.get(j));
-			j++;
+			solutions.put(cles.get(j-1), new Float(0.0));
 		}
 		
-		solutions.put(cles.get(j-1), new Float(0.0));
+		System.out.println("Solution reproduitent :" + iteration);
+		for(Entry<BitSet, Float> b : solutions.entrySet()) {
+			System.out.println(b.toString());
+		}
 		
 		keys = new ArrayList<BitSet>(solutions.keySet());
-=======
-		//TODO
-
-		ArrayList<BitSet> keys = new ArrayList<BitSet>(solutions.keySet());
->>>>>>> origin/master
-
+		
 		//Croisements ou mutations en fonction d'un random
 		for(Entry<BitSet,Float> solution : solutions.entrySet()) {
 			if(r.nextFloat() < 0.1){
@@ -547,6 +552,7 @@ public class Logique extends Thread {
 			nbPersonnes = 0;
 			prix += Commun.PRIX_LIEU;
 			courant = lieux.get(i);
+			courant.setNbPersonneAssociees(0);
 			
 			while(nonPlein) {
 				temp.setLieu(courant);
@@ -562,14 +568,19 @@ public class Logique extends Thread {
 					}
 				}
 				
-				nbPersonnes = courant.getNbPersonneAssociees() + best.getNbpersonnes();
+				if(best != null){
+					nbPersonnes = courant.getNbPersonneAssociees() + best.getNbpersonnes();
 				
-				//S'il reste de la place on associe l'agence sinon on passe au lieu suivant
-				if(nbPersonnes < 60) {
-					agencesTmp.remove(best);
-					temp.setAgence(best);
-					courant.setNbPersonneAssociees(nbPersonnes);
-					prix += temp.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET;
+					//S'il reste de la place on associe l'agence sinon on passe au lieu suivant
+					if(nbPersonnes < 60) {
+						agencesTmp.remove(best);
+						temp.setAgence(best);
+						courant.setNbPersonneAssociees(nbPersonnes);
+						prix += temp.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET;
+					}
+					else {
+						nonPlein = false;
+					}
 				}
 				else {
 					nonPlein = false;
