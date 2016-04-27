@@ -67,7 +67,6 @@ public class InterfaceVisuelle extends JFrame
 	private JTextField txt_totalLieu;
 	private JTextField txt_totalDistance;
 	private JTextField txt_totalPrix;
-	private JTextField txt_nombreVoisinsAgences;
 	private JTextField txt_iterations;
 	private JSlider slider_temperature;
 
@@ -180,17 +179,6 @@ public class InterfaceVisuelle extends JFrame
 		pnl_control.add(txt_iterations);
 		
 		height += 40;
-		
-		JLabel lbl_nombreVoisinsAgences = new JLabel("Nombre de voisins d'une agence :");
-		lbl_nombreVoisinsAgences.setBounds(20, height, 250, 30);
-		pnl_control.add(lbl_nombreVoisinsAgences);
-		
-		txt_nombreVoisinsAgences = new JTextField("30");
-		txt_nombreVoisinsAgences.setBounds(260, height, 40, 30);
-		txt_nombreVoisinsAgences.addKeyListener(this);
-		pnl_control.add(txt_nombreVoisinsAgences);
-		
-		height += 30;
 		
 		JLabel lbl_temperature = new JLabel("Température :");
 		lbl_temperature.setBounds(20, height, 90, 30);
@@ -392,7 +380,7 @@ public class InterfaceVisuelle extends JFrame
 		    int returnVal = chooser.showOpenDialog(this);
 		    if(returnVal == JFileChooser.APPROVE_OPTION) {
 		    	logique.setPathFichier(chooser.getSelectedFile().getPath());
-		    	logique.lireAgences(Integer.parseInt(txt_nombreVoisinsAgences.getText()));
+		    	logique.lireAgences();
 		    	txt_totalPersonne.setText(logique.getAgences().getNombrePersonne()+"");
 		    	txt_minimumLieu.setText(Math.ceil(logique.getAgences().getNombrePersonne()/Commun.MAX_PERSONNE)+"");
 		    	carte.repaint();
@@ -438,11 +426,7 @@ public class InterfaceVisuelle extends JFrame
 	
 	@Override
 	public void keyReleased(KeyEvent e) {
-		if (e.getSource() == txt_nombreVoisinsAgences) {
-			if(estEntier(txt_nombreVoisinsAgences.getText())) {
-				logique.lireAgences(Integer.parseInt(txt_nombreVoisinsAgences.getText()));
-			}
-		} else if(e.getSource() == txt_iterations) {
+		if(e.getSource() == txt_iterations) {
 			if(estEntier(txt_iterations.getText())) {
 				logique.setIterations(Integer.parseInt(txt_iterations.getText()));
 			}
