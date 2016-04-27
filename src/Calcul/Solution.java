@@ -42,7 +42,13 @@ public class Solution {
 		this.propa = propa;
 	}
 	
+	@Override
 	public String toString() {
-		return " Prix : " + this.prix + " Prop : " + this.propa ;
+		return "Lieux : " + this.lieux + "\n" + "Prix : " + this.prix + " Prop : " + this.propa ;
+	}
+	
+	@Override
+	public Solution clone() {
+		return new Solution((BitSet) this.lieux.clone(),this.prix);
 	}
 }

@@ -399,7 +399,7 @@ public class Logique extends Thread {
 		//Génération aléatoire des premières solutions
 		while(generation.size() < Commun.NB_SOLUTION_ALGOGENE) {
 			BitSet bitSet = new BitSet(lieux.size());
-			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(10));
+			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(100));
 
 			for(int j = 0; j < nbIteration; j++) {
 				bitSet.set(r.nextInt(lieux.size()));
@@ -420,14 +420,14 @@ public class Logique extends Thread {
 		Random r = new Random();
 		float prix;
 		float sommeInverse = 0;
-		Solution temp;
 		
 		for(Solution solution : generation) {
 			//Calcul du prix de la solution
 			prix = calculPrixSolution(solution.getLieux());
 			solution.setPrix(prix);
-			solution.setPropa(1/prix);
-			sommeInverse += (1/prix);
+			float valeur = 1/prix;
+			solution.setPropa(valeur);
+			sommeInverse += valeur;
 
 			if(prix < meilleureSolutionAlgogene.getPrix() && solution.getLieux().cardinality() >= nbLieuxMin)
 				meilleureSolutionAlgogene = solution;
@@ -475,12 +475,11 @@ public class Logique extends Thread {
 				}
 			}
 						
-			Solution solution = new Solution();
-			solution.setLieux(generation.get(index).getLieux());
-			solution.setPrix(generation.get(index).getPrix());
+			Solution solution = generation.get(index).clone();
 			
 			solutions.add(solution);
 		}
+		
 		
 //		System.out.println("Solution reproduitent :" + iteration);
 //		for(Solution s : solutions) {
@@ -488,38 +487,39 @@ public class Logique extends Thread {
 //		}
 		
 		Solution solution;
+		Solution copie;
+		Solution temp;
 		ArrayList<Solution> copies = new ArrayList<Solution>();	
 		int indexCroissement;
 		
-		//Croisements ou mutations en fonction d'un random
+		//Croisements et mutations en fonction d'un random
 		for(int k = 0; k < solutions.size(); k++) {
 			solution = solutions.get(k);
+			solutions.remove(solution);
 			
-			if(r.nextFloat() < 0.001){
-				//Mutation
-				solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
-				copies.add(solution);
-			}
-			else {
 				//Croisement
 				indexCroissement = r.nextInt(solution.getLieux().size());
 				temp = solutions.get(r.nextInt(solutions.size()));
+				solutions.remove(temp);
+				copie = solution.clone();
 				
-				for(int l = indexCroissement; l < solution.getLieux().size(); l++) {
+				for(int l = indexCroissement + 1; l < lieux.size(); l++) {
 					solution.getLieux().set(l, temp.getLieux().get(l));
-					temp.getLieux().set(l,solution.getLieux().get(l));
+					temp.getLieux().set(l,copie.getLieux().get(l));
+				}
+				
+				
+				if(r.nextFloat() < 0.01){
+					//Mutation
+					solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
 				}
 				
 				copies.add(solution);
 				copies.add(temp);
-				
-				solutions.remove(temp);
-				solutions.remove(solution);
-			}
 		}
 
 		//Rappel de la fonction avec la nouvelle generation
-		if(iteration < 1000) {
+		if(iteration < 200) {
 			recursifAlgogene(copies, iteration + 1);		
 		} else {
 			System.out.println("Meilleure solution : " + meilleureSolutionAlgogene);
@@ -559,9 +559,9 @@ public class Logique extends Thread {
 		Trajet temp = new Trajet();
 		
 		//Si il y a moins de lieu que le nombre minimum alors la solution n'est pas valable
-//		if(solution.cardinality() < this.nbLieuxMin) {
-//			return Float.MAX_VALUE;
-//		}
+		if(solution.cardinality() < this.nbLieuxMin - this.nbLieuxMin/2) {
+			return Float.MAX_VALUE;
+		}
 		
 		//Parcours des lieux et associations des agences les plus proches
 		for (int i = solution.nextSetBit(0); i >= 0; i = solution.nextSetBit(i+1)) {
