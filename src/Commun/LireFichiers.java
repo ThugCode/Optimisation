@@ -13,7 +13,7 @@ import Noeuds.Lieu;
 
 public class LireFichiers {
 
-	public static GroupeAgence LireAgence(String filePath, int nombreDeVoisins) {
+	public static GroupeAgence LireAgence(String filePath) {
 		
 		GroupeAgence liste = new GroupeAgence();
 		
@@ -44,15 +44,15 @@ public class LireFichiers {
 							if(!nouvelleAgence.getVoisins().contains(temp)) {
 								nouvelleAgence.getVoisins().add(temp);
 								Collections.sort(nouvelleAgence.getVoisins());
-								if(nouvelleAgence.getVoisins().size()>nombreDeVoisins)
-									nouvelleAgence.getVoisins().remove(nombreDeVoisins);
+								if(nouvelleAgence.getVoisins().size()>Commun.VOISINS_AGENCES)
+									nouvelleAgence.getVoisins().remove(Commun.VOISINS_AGENCES);
 							}
 							
 							if(!voisin.getVoisins().contains(temp)) {
 								voisin.getVoisins().add(temp);
 								Collections.sort(voisin.getVoisins());
-								if(voisin.getVoisins().size()>nombreDeVoisins)
-									voisin.getVoisins().remove(nombreDeVoisins);
+								if(voisin.getVoisins().size()>Commun.VOISINS_AGENCES)
+									voisin.getVoisins().remove(Commun.VOISINS_AGENCES);
 							}
 						}
 					}

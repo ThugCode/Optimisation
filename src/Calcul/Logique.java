@@ -40,7 +40,7 @@ public class Logique extends Thread {
 	private float prixTotal;
 	private int lieuTotal;
 	
-	ArrayList<GroupeAgence> listeGroupes;
+	private ArrayList<GroupeAgence> listeGroupes;
 	
 	/**
 	 * Constructeur
@@ -56,7 +56,7 @@ public class Logique extends Thread {
 		pathFichier = filePath;
 		
 		//Enregistrer les agences et les lieux
-		lireAgences(30);
+		lireAgences();
     	lieux = LireFichiers.LireLieuxPossible();
     	
     	//Initialisation des variables pour le recuit simulé
@@ -67,15 +67,13 @@ public class Logique extends Thread {
     	
     	//Initialisation des trajets
     	resetTrajets();
-    	prixTotal = Float.MAX_VALUE;
 	}
 	
 	/**
 	 * Enregistrer les agences et leurs voisins
-	 * @param nombreVoisins
 	 */
-	public void lireAgences(int nombreVoisins) {
-		this.setAgences(LireFichiers.LireAgence(pathFichier, nombreVoisins));
+	public void lireAgences() {
+		agences = LireFichiers.LireAgence(pathFichier);
 	}
 	
 	/**
@@ -87,6 +85,7 @@ public class Logique extends Thread {
 		
 		distanceTotale = 0;
     	lieuTotal = 0;
+    	prixTotal = 0;
 	}
 	
 	/**
@@ -231,24 +230,25 @@ public class Logique extends Thread {
 		affichage.update();
 	}
 	
+	/**
+	 * Fonction de calcul du prix
+	 * @return Prix float
+	 */
 	private float calculPrix() {
 		
 		float prix = 0;
-		float lieuxN = 0;
 		
 		for(Lieu lieu : lieux) {
 			if(lieu.isAssocie()) {
 				prix += Commun.PRIX_LIEU;
-				lieuxN ++;
 			}
 		}
 		
 		for(Trajet trajet : trajets) {
-			prix += trajet.getAgence().getNbpersonnes()*0.8*trajet.getDistanceKm();
+			prix += trajet.getAgence().getNbpersonnes()
+					*0.8
+					*trajet.getDistanceKm();
 		}
-		
-		if(lieuxN != lieuTotal)
-			System.out.println("LIEUX FAUX : "+lieuxN);
 		
 		return prix;
 	}
@@ -361,12 +361,27 @@ public class Logique extends Thread {
 		Collections.sort(lieuUtilises);
 		
 		while(lieuUtilises != null) {
-			
 			lieuUtilises = viderLieuMoinsRempli(lieuUtilises);
 		}
 		return indexSwap;
 	}
 	
+	
+	public ArrayList<Lieu> trouverChemin(Lieu lieuA, Lieu lieuB) {
+		
+		ArrayList<Lieu> surLeChemin = new ArrayList<Lieu>();
+		
+		for(Lieu lieuC : lieux) {
+			//Si le lieu de C est entre A et B
+			if(lieuA.distanceAgences(lieuC) < lieuA.distanceAgences(lieuB)
+			&& lieuB.distanceAgences(lieuC) < lieuB.distanceAgences(lieuA)) {
+				
+				surLeChemin.add(lieuC);
+			}
+		}
+		
+		return surLeChemin;
+	}
 	
 	private ArrayList<Lieu> viderLieuMoinsRempli(ArrayList<Lieu> utilises) {
 		
@@ -414,11 +429,13 @@ public class Logique extends Thread {
 				return null;
 			}
 			
+			//ArrayList<Lieu> surLeChemin = trouverChemin(lieuDuTrajet, lieuOptimum);
+			
 			//Supprimer le trajet actuel
 			trajetsCopy.remove(trajet);
 			distanceTotaleCopy -= trajet.getDistanceKm();
 			lieuDuTrajet.setNbPersonneAssociees(lieuDuTrajet.getNbPersonneAssociees() - agenceDuTrajet.getNbpersonnes());
-			lieuDuTrajet.getTrajets().clear();
+			lieuDuTrajet.getTrajets().remove(trajet);
 			
 			//Ajouter le nouveau trajet
 			Trajet nouveauTrajet = new Trajet(agenceDuTrajet, lieuOptimum);
@@ -442,6 +459,7 @@ public class Logique extends Thread {
 			distanceTotale = distanceTotaleCopy;
 			prixTotal = prix;
 			lieuTotal = lieuTotalCopy;
+			
 		} else {
 			return null;
 		}
@@ -610,7 +628,6 @@ public class Logique extends Thread {
 				copies.add(solution);
 				copies.add(temp);
 		}
-
 		//Rappel de la fonction avec la nouvelle generation
 		if(iteration < 200) {
 			recursifAlgogene(copies, iteration + 1);		
