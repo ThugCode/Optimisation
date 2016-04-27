@@ -539,6 +539,7 @@ public class Logique extends Thread {
 		//Liste correspondant aux solutions d'un génération
 		List<Solution> generation = new ArrayList<Solution>();
 		
+		//Calcul du nombre de lieux minimun pour qu'une solution soit viable
 		calculNbLieuxMin();
 		
 		//Génération aléatoire des premières solutions
@@ -549,7 +550,7 @@ public class Logique extends Thread {
 			for(int j = 0; j < nbIteration; j++) {
 				bitSet.set(r.nextInt(lieux.size()));
 			}
-			
+			//Il faut que la solution soit valide pour qu'elle soit ajoutée
 			if(bitSet.cardinality() >= nbLieuxMin)
 			{
 				solution = new Solution(bitSet,new Float(0));
@@ -563,35 +564,6 @@ public class Logique extends Thread {
 	private void recursifAlgogene(List<Solution> generation, int iteration) {
 		List<Solution> solutions = new ArrayList<Solution>();
 		Random r = new Random();
-		float prix;
-		float sommeInverse = 0;
-		
-		for(Solution solution : generation) {
-			//Calcul du prix de la solution
-			prix = calculPrixSolution(solution.getLieux());
-			solution.setPrix(prix);
-			float valeur = 1/prix;
-			solution.setPropa(valeur);
-			sommeInverse += valeur;
-
-			if(prix < meilleureSolutionAlgogene.getPrix() && solution.getLieux().cardinality() >= nbLieuxMin)
-				meilleureSolutionAlgogene = solution;
-		}		
-
-		//Tri dans l'ordre croissant du prix des solutions
-		Collections.sort(generation,new Comparator<Solution>() {
-			public int compare(Solution b1, Solution b2){
-				return b1.getPrix().compareTo(b2.getPrix());
-			}
-		});
-		
-		
-		//Calcul de la propabilité de choisir une solution
-		for(Solution solution : generation) {
-			float valeur = solution.getPropa();
-			valeur = valeur/sommeInverse;
-			solution.setPropa(valeur);
-		}
 		
 		System.out.println("Génération :" + iteration + " " + generation.get(0));
 		
@@ -600,31 +572,8 @@ public class Logique extends Thread {
 //		for(Solution s : generation) {
 //			System.out.println(s.toString());
 //		}
-						
-		float propa;
-		float propCumul;
-		int index;
 		
-		//Reproduction avec selection aléatoire en fonction des propabilités
-		for(int i = 0; i < Commun.NB_SOLUTION_ALGOGENE; i++) {
-			propa = r.nextFloat();
-			propCumul = 0;
-			index = 0;
-			
-			for(int j = 0; j < generation.size()/2; j++) {
-				propCumul += generation.get(j).getPropa();
-				if(propa <= propCumul){
-					break;
-				} else {
-					index++;
-				}
-			}
-						
-			Solution solution = generation.get(index).clone();
-			
-			solutions.add(solution);
-		}
-		
+		solutions = Reproduction(generation);
 		
 //		System.out.println("Solution reproduitent :" + iteration);
 //		for(Solution s : solutions) {
@@ -653,9 +602,8 @@ public class Logique extends Thread {
 					temp.getLieux().set(l,copie.getLieux().get(l));
 				}
 				
-				
+				//Mutation
 				if(r.nextFloat() < 0.01){
-					//Mutation
 					solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
 				}
 				
@@ -669,6 +617,134 @@ public class Logique extends Thread {
 		} else {
 			System.out.println("Meilleure solution : " + meilleureSolutionAlgogene);
 		}
+	}
+	
+	private List<Solution> Reproduction(List<Solution> generation) {
+		
+		float prix = 0;
+		float sommeInverse = 0;
+		List<Solution> solutions = new ArrayList<Solution>();
+		
+		for(Solution solution : generation) {
+			//Calcul du prix de la solution
+			prix = calculPrixSolution(solution.getLieux());
+			solution.setPrix(prix);
+			float valeur = 1/prix;
+			solution.setPropa(valeur);
+			sommeInverse += valeur;
+
+			if(prix < meilleureSolutionAlgogene.getPrix() && solution.getLieux().cardinality() >= nbLieuxMin)
+				miseAJourMeilleurSolution(solution);			
+		}
+		
+		//Tri dans l'ordre croissant du prix des solutions
+		Collections.sort(generation,new Comparator<Solution>() {
+			public int compare(Solution b1, Solution b2){
+				return b1.getPrix().compareTo(b2.getPrix());
+			}
+		});
+		
+		
+		//Calcul de la propabilité de choisir une solution
+		for(Solution solution : generation) {
+			float valeur = solution.getPropa();
+			valeur = valeur/sommeInverse;
+			solution.setPropa(valeur);
+		}
+		
+		float propa;
+		float propCumul;
+		int index;
+		Random r = new Random();
+		
+		//Reproduction avec selection aléatoire en fonction des propabilités
+		for(int i = 0; i < Commun.NB_SOLUTION_ALGOGENE; i++) {
+			propa = r.nextFloat();
+			propCumul = 0;
+			index = 0;
+			
+			for(int j = 0; j < generation.size()/2; j++) {
+				propCumul += generation.get(j).getPropa();
+				if(propa <= propCumul){
+					break;
+				} else {
+					index++;
+				}
+			}
+						
+			Solution solution = generation.get(index).clone();
+			
+			solutions.add(solution);
+		}
+		
+		return solutions;
+	}
+	
+	private void miseAJourMeilleurSolution(Solution solution) {
+		//Copie de la liste des agences afin de pouvoir en supprimer
+		ArrayList<Agence> agencesTmp = new ArrayList<Agence>(agences); 
+		Agence best;
+		Lieu courant;
+		int nbPersonnes;
+		float min;
+		boolean nonPlein;
+		Trajet trajetTmp = new Trajet();
+		
+		prixTotal = 0;
+		distanceTotale = 0;
+		lieuTotal = 0;
+		trajets = new ArrayList<Trajet>();
+		meilleureSolutionAlgogene = solution;
+
+		//Parcours des lieux et associations des agences les plus proches
+		for (int i = solution.getLieux().nextSetBit(0); i >= 0; i = solution.getLieux().nextSetBit(i+1)) {
+			if (i == Integer.MAX_VALUE || i > lieux.size()) {
+				break; // or (i+1) would overflow
+			}
+
+			nonPlein = true;
+			nbPersonnes = 0;
+			prixTotal += Commun.PRIX_LIEU;
+			lieuTotal++;
+			courant = lieux.get(i);
+			courant.setNbPersonneAssociees(0);
+
+			while(nonPlein) {
+				trajetTmp.setLieu(courant);
+				best = null;
+				min = Float.MAX_VALUE;
+
+				//Determination de l'agence la plus proche
+				for(Agence agence : agencesTmp) {
+					trajetTmp.setAgence(agence);
+					if(best == null || trajetTmp.getDistanceKm() < min) {
+						best = agence;
+						min = trajetTmp.getDistanceKm();
+					}
+				}
+
+				if(best != null) {
+					nbPersonnes = courant.getNbPersonneAssociees() + best.getNbpersonnes();
+
+					//S'il reste de la place on associe l'agence sinon on passe au lieu suivant
+					if(nbPersonnes < 60) {
+						agencesTmp.remove(best);
+						trajetTmp.setAgence(best);
+						courant.setNbPersonneAssociees(nbPersonnes);
+						prixTotal += trajetTmp.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET;
+						distanceTotale += trajetTmp.getDistanceKm()*best.getNbpersonnes()*2;
+						trajets.add(trajetTmp);
+					}
+					else {
+						nonPlein = false;
+					}
+				}
+				else {
+					nonPlein = false;
+				}
+			}
+		}
+		affichage.update();
 	}
 
 	private static float[] getBarycentre(ArrayList<Agence> agences) {
@@ -700,12 +776,12 @@ public class Logique extends Thread {
 		float min;
 		float prix = 0;
 		boolean nonPlein;
-		
+		Random r = new Random();
 		Trajet temp = new Trajet();
 		
-		//Si il y a moins de lieu que le nombre minimum alors la solution n'est pas valable
-		if(solution.cardinality() < this.nbLieuxMin - this.nbLieuxMin/2) {
-			return Float.MAX_VALUE;
+		//Si il y a moins de lieu que le nombre minimum alors on rajoute des lieux aléatoirement
+		while(solution.cardinality() < nbLieuxMin) {
+			solution.set(r.nextInt(lieux.size()));
 		}
 		
 		//Parcours des lieux et associations des agences les plus proches
@@ -734,7 +810,7 @@ public class Logique extends Thread {
 					}
 				}
 				
-				if(best != null){
+				if(best != null) {
 					nbPersonnes = courant.getNbPersonneAssociees() + best.getNbpersonnes();
 				
 					//S'il reste de la place on associe l'agence sinon on passe au lieu suivant
