@@ -389,7 +389,6 @@ public class Logique extends Thread {
 		
 		meilleureSolutionAlgogene = new Solution();
 		Random r = new Random();
-		float prix;
 		Solution solution;
 		
 		//Liste correspondant aux solutions d'un génération
@@ -400,7 +399,7 @@ public class Logique extends Thread {
 		//Génération aléatoire des premières solutions
 		while(generation.size() < Commun.NB_SOLUTION_ALGOGENE) {
 			BitSet bitSet = new BitSet(lieux.size());
-			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(2));
+			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(10));
 
 			for(int j = 0; j < nbIteration; j++) {
 				bitSet.set(r.nextInt(lieux.size()));
@@ -408,12 +407,8 @@ public class Logique extends Thread {
 			
 			if(bitSet.cardinality() >= nbLieuxMin)
 			{
-				prix = calculPrixSolution(bitSet);	
-				solution = new Solution(bitSet,prix);
+				solution = new Solution(bitSet,new Float(0));
 				generation.add(solution);
-				
-				if(prix < meilleureSolutionAlgogene.getPrix())
-					meilleureSolutionAlgogene = solution;
 			}
 		}
 		
@@ -427,6 +422,16 @@ public class Logique extends Thread {
 		float sommeInverse = 0;
 		Solution temp;
 		
+		for(Solution solution : generation) {
+			//Calcul du prix de la solution
+			prix = calculPrixSolution(solution.getLieux());
+			solution.setPrix(prix);
+			solution.setPropa(1/prix);
+			sommeInverse += (1/prix);
+
+			if(prix < meilleureSolutionAlgogene.getPrix() && solution.getLieux().cardinality() >= nbLieuxMin)
+				meilleureSolutionAlgogene = solution;
+		}		
 
 		//Tri dans l'ordre croissant du prix des solutions
 		Collections.sort(generation,new Comparator<Solution>() {
@@ -435,13 +440,6 @@ public class Logique extends Thread {
 			}
 		});
 		
-		//Inversion des prix
-		for(Solution solution : generation) {
-			float valeur = solution.getPrix();
-			valeur = 1/valeur;
-			sommeInverse += valeur;
-			solution.setPropa(valeur);
-		}
 		
 		//Calcul de la propabilité de choisir une solution
 		for(Solution solution : generation) {
@@ -450,11 +448,13 @@ public class Logique extends Thread {
 			solution.setPropa(valeur);
 		}
 		
+		System.out.println("Génération :" + iteration + " " + generation.get(0));
+		
 		//Affichage de la génération
-		System.out.println("Génération :" + iteration);
-		for(Solution s : generation) {
-			System.out.println(s.toString());
-		}
+//		System.out.println("Génération :" + iteration);
+//		for(Solution s : generation) {
+//			System.out.println(s.toString());
+//		}
 						
 		float propa;
 		float propCumul;
@@ -466,9 +466,9 @@ public class Logique extends Thread {
 			propCumul = 0;
 			index = 0;
 			
-			for(int j = 0; j < generation.size(); j++) {
+			for(int j = 0; j < generation.size()/2; j++) {
 				propCumul += generation.get(j).getPropa();
-				if(propa < propCumul){
+				if(propa <= propCumul){
 					break;
 				} else {
 					index++;
@@ -482,43 +482,45 @@ public class Logique extends Thread {
 			solutions.add(solution);
 		}
 		
-		System.out.println("Solution reproduitent :" + iteration);
-		for(Solution s : solutions) {
-			System.out.println(s.toString());
-		}
+//		System.out.println("Solution reproduitent :" + iteration);
+//		for(Solution s : solutions) {
+//			System.out.println(s.toString());
+//		}
 		
 		Solution solution;
-				
+		ArrayList<Solution> copies = new ArrayList<Solution>();	
+		int indexCroissement;
+		
 		//Croisements ou mutations en fonction d'un random
 		for(int k = 0; k < solutions.size(); k++) {
 			solution = solutions.get(k);
 			
-			if(r.nextFloat() < 0.25){
+			if(r.nextFloat() < 0.001){
 				//Mutation
 				solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
+				copies.add(solution);
 			}
 			else {
 				//Croisement
-				index = r.nextInt(solution.getLieux().size());
+				indexCroissement = r.nextInt(solution.getLieux().size());
 				temp = solutions.get(r.nextInt(solutions.size()));
 				
-				for(int l = index; l < solution.getLieux().size(); l++) {
+				for(int l = indexCroissement; l < solution.getLieux().size(); l++) {
 					solution.getLieux().set(l, temp.getLieux().get(l));
+					temp.getLieux().set(l,solution.getLieux().get(l));
 				}
+				
+				copies.add(solution);
+				copies.add(temp);
+				
+				solutions.remove(temp);
+				solutions.remove(solution);
 			}
-
-			//Calcul du prix de la solution
-			prix = calculPrixSolution(solution.getLieux());
-			solution.setPrix(prix);
-			solution.setPropa(0);
-			
-			if(prix < meilleureSolutionAlgogene.getPrix())
-				meilleureSolutionAlgogene = solution;
 		}
 
 		//Rappel de la fonction avec la nouvelle generation
-		if(iteration < 100) {
-			recursifAlgogene(solutions, iteration + 1);		
+		if(iteration < 1000) {
+			recursifAlgogene(copies, iteration + 1);		
 		} else {
 			System.out.println("Meilleure solution : " + meilleureSolutionAlgogene);
 		}
@@ -557,9 +559,9 @@ public class Logique extends Thread {
 		Trajet temp = new Trajet();
 		
 		//Si il y a moins de lieu que le nombre minimum alors la solution n'est pas valable
-		if(solution.cardinality() < this.nbLieuxMin) {
-			return Float.MAX_VALUE;
-		}
+//		if(solution.cardinality() < this.nbLieuxMin) {
+//			return Float.MAX_VALUE;
+//		}
 		
 		//Parcours des lieux et associations des agences les plus proches
 		for (int i = solution.nextSetBit(0); i >= 0; i = solution.nextSetBit(i+1)) {
@@ -595,7 +597,7 @@ public class Logique extends Thread {
 						agencesTmp.remove(best);
 						temp.setAgence(best);
 						courant.setNbPersonneAssociees(nbPersonnes);
-						prix += temp.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET*2;
+						prix += temp.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET;
 					}
 					else {
 						nonPlein = false;
@@ -604,7 +606,6 @@ public class Logique extends Thread {
 				else {
 					nonPlein = false;
 				}
-				
 			}
 		 }
 		

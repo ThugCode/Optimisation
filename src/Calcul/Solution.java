@@ -43,6 +43,6 @@ public class Solution {
 	}
 	
 	public String toString() {
-		return "Lieux " + this.lieux + " Prix : " + this.prix + " Prop : " + this.propa ;
+		return " Prix : " + this.prix + " Prop : " + this.propa ;
 	}
 }
