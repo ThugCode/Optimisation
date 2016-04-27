@@ -17,7 +17,6 @@ public class LireFichiers {
 		
 		GroupeAgence liste = new GroupeAgence();
 		
-		int nbPersonneTotal = 0;
 		Lien temp;
 		try {
 			BufferedReader buff = new BufferedReader(new FileReader(filePath));
@@ -36,7 +35,6 @@ public class LireFichiers {
 						nouvelleAgence.setLongitude(Float.parseFloat(parts[3]));
 						nouvelleAgence.setLatitude(Float.parseFloat(parts[4]));
 						nouvelleAgence.setNbpersonnes(Integer.parseInt(parts[5]));
-						nbPersonneTotal += nouvelleAgence.getNbpersonnes();
 						liste.add(nouvelleAgence);
 						
 						for(Agence voisin : liste) {
@@ -64,8 +62,6 @@ public class LireFichiers {
 				buff.close();
 			}
 		} catch (IOException ioe) { System.out.println("Erreur IO --" + ioe.toString());}
-		
-		liste.setNombrePersonne(nbPersonneTotal);
 		
 		return liste;
 	}

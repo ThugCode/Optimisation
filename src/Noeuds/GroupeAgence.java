@@ -7,6 +7,7 @@ public class GroupeAgence extends ArrayList<Agence> {
 
 	private int numero;
 	private int nombrePersonne;
+	private Agence barycentre;
 	
 	public GroupeAgence(GroupeAgence groupeAgence) {
 		super(groupeAgence);
@@ -15,7 +16,6 @@ public class GroupeAgence extends ArrayList<Agence> {
 	public GroupeAgence() {
 		super();
 		setNumero(0);
-		setNombrePersonne(0);
 	}
 	
 	public int nombreLieuxMinimum() {
@@ -31,14 +31,19 @@ public class GroupeAgence extends ArrayList<Agence> {
 	}
 
 	public int getNombrePersonne() {
+		
+		int nombrePersonne = 0;
+		for(Agence agence : this) {
+			nombrePersonne += agence.getNbpersonnes();
+		}
 		return nombrePersonne;
 	}
 
-	public void setNombrePersonne(int nombrePersonne) {
-		this.nombrePersonne = nombrePersonne;
+	public Agence getBarycentre() {
+		return barycentre;
 	}
-	
-	public void getSetNombrePersonne(int nombrePersonne) {
-		this.nombrePersonne += nombrePersonne;
+
+	public void setBarycentre(Agence barycentre) {
+		this.barycentre = barycentre;
 	}
 }

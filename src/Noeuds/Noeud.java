@@ -1,9 +1,5 @@
 package Noeuds;
 
-import java.util.ArrayList;
-
-import Arcs.Trajet;
-
 public class Noeud {
 	
 	protected int id;
@@ -11,11 +7,10 @@ public class Noeud {
 	protected String codepostal;
 	protected float longitude;
 	protected float latitude;
-	protected ArrayList<Trajet> trajets;
+	
 	
 	public Noeud() {
 		super();
-		this.trajets = new ArrayList<Trajet>();
 	}
 	
 	public Noeud(int id, String nom, String codepostal, float longitude, float latitude) {
@@ -25,7 +20,6 @@ public class Noeud {
 		this.codepostal = codepostal;
 		this.longitude = longitude;
 		this.latitude = latitude;
-		this.trajets = new ArrayList<Trajet>();
 	}
 
 	public int getLongitudeForMap(double facteur) {
@@ -66,10 +60,4 @@ public class Noeud {
 	public void setLatitude(float latitude) {
 		this.latitude = latitude;
 	}
-	public ArrayList<Trajet> getTrajets() {
-		return trajets;
-	}
-	public void setTrajets(ArrayList<Trajet> trajets) {
-		this.trajets = trajets;
-	}	
 }

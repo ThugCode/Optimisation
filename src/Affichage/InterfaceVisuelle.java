@@ -196,8 +196,8 @@ public class InterfaceVisuelle extends JFrame
 		lbl_temperature.setBounds(20, height, 90, 30);
 		pnl_control.add(lbl_temperature);
 		
-		slider_temperature = new JSlider(JSlider.HORIZONTAL, 1, 50000, 5000);
-		slider_temperature.setValue(100000);
+		slider_temperature = new JSlider(JSlider.HORIZONTAL, 1, Commun.TEMPERATURE_MAX, 5000);
+		slider_temperature.setValue(Commun.TEMPERATURE_MAX);
 		slider_temperature.setBounds(120, height-8, 180, 50);
 		slider_temperature.addChangeListener(this);
 		pnl_control.add(slider_temperature);

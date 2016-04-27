@@ -1,9 +1,15 @@
 package Noeuds;
-public class Lieu extends Noeud {
+
+import java.util.ArrayList;
+
+import Arcs.Trajet;
+
+public class Lieu extends Noeud implements Comparable<Lieu> {
 
 	private int nbPersonneAssociees;
 	private boolean associe;
 	private boolean retour;
+	private ArrayList<Trajet> trajets;
 	
 	public Lieu() {
 		super();
@@ -11,6 +17,7 @@ public class Lieu extends Noeud {
 		this.nbPersonneAssociees = 0;
 		this.associe = false;
 		this.retour = true;
+		this.trajets = new ArrayList<Trajet>();
 	}
 	
 	public Lieu(int id, String nom, String codepostal, float longitude, float latitude) {
@@ -18,6 +25,7 @@ public class Lieu extends Noeud {
 		
 		this.nbPersonneAssociees = 0;
 		this.associe = false;
+		this.trajets = new ArrayList<Trajet>();
 	}
 	
 	public void reset() {
@@ -45,11 +53,28 @@ public class Lieu extends Noeud {
 	public void setRetour(boolean retour) {
 		this.retour = retour;
 	}
+	
+	public ArrayList<Trajet> getTrajets() {
+		return trajets;
+	}
+	public void setTrajets(ArrayList<Trajet> trajets) {
+		this.trajets = trajets;
+	}	
 
 	public String toString() {
 		return "Lieu "+this.nom+
 				" ("+this.id+") cp : "+this.codepostal+
 				" longitude : "+this.longitude+
 				" latitude : "+this.latitude;
+	}
+	
+	@Override
+	public int compareTo(Lieu lieu) {
+		if(this.nbPersonneAssociees > lieu.getNbPersonneAssociees())
+			return 1;
+		else if(this.nbPersonneAssociees < lieu.getNbPersonneAssociees())
+			return -1;
+		
+		return 0;
 	}
 }
