@@ -33,12 +33,6 @@ public class Lieu extends Noeud implements Comparable<Lieu> {
 		this.setNbPersonneAssociees(0);
 	}
 	
-	public float distanceAgences(Lieu autre) {
-		float xaxb = this.getLongitude()-autre.getLongitude();
-		float yayb = this.getLatitude()-autre.getLatitude();
-		return (float) Math.sqrt(Math.pow(xaxb, 2) + Math.pow(yayb, 2));
-	}
-	
 	public int getNbPersonneAssociees() {
 		return nbPersonneAssociees;
 	}

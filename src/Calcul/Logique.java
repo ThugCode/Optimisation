@@ -366,23 +366,6 @@ public class Logique extends Thread {
 		return indexSwap;
 	}
 	
-	
-	public ArrayList<Lieu> trouverChemin(Lieu lieuA, Lieu lieuB) {
-		
-		ArrayList<Lieu> surLeChemin = new ArrayList<Lieu>();
-		
-		for(Lieu lieuC : lieux) {
-			//Si le lieu de C est entre A et B
-			if(lieuA.distanceAgences(lieuC) < lieuA.distanceAgences(lieuB)
-			&& lieuB.distanceAgences(lieuC) < lieuB.distanceAgences(lieuA)) {
-				
-				surLeChemin.add(lieuC);
-			}
-		}
-		
-		return surLeChemin;
-	}
-	
 	private ArrayList<Lieu> viderLieuMoinsRempli(ArrayList<Lieu> utilises) {
 		
 		ArrayList<Trajet> trajetsCopy = new ArrayList<Trajet>(trajets);
@@ -428,8 +411,6 @@ public class Logique extends Thread {
 				//System.out.println("AUCUN LIEU OPTIMUM");
 				return null;
 			}
-			
-			//ArrayList<Lieu> surLeChemin = trouverChemin(lieuDuTrajet, lieuOptimum);
 			
 			//Supprimer le trajet actuel
 			trajetsCopy.remove(trajet);

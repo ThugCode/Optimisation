@@ -76,6 +76,7 @@ public class InterfaceVisuelle extends JFrame
         setResizable(false);
         setLocationRelativeTo(null);
 		setLayout(null);
+		setTitle("GERLAND - LETOURNEUR - FRANCOIS");
 		
 		facteur = 1000;
 		afficherTrajet = true;
