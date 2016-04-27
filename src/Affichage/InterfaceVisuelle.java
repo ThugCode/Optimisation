@@ -376,7 +376,12 @@ public class InterfaceVisuelle extends JFrame
 			t1.start();
 			
 		} else if(e.getSource() == btn_algogene) {
-			logique.algogene();
+			Thread t2 = new Thread(new Runnable() {
+				public void run() {
+					logique.algogene();
+				}
+			});
+			t2.start();
 		} else if(e.getSource() == btn_choixAgence) {
 			
 			File file = new File("Fichiers");

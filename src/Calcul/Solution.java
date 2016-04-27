@@ -13,9 +13,10 @@ public class Solution {
 		this.prix = Float.MAX_VALUE;
 	}
 	
-	public Solution(BitSet lieux, Float prix) {
+	public Solution(BitSet lieux, Float prix, Float propa) {
 		this.lieux = lieux;
 		this.prix = prix;
+		this.propa = propa;
 	}
 
 	public BitSet getLieux() {
@@ -49,6 +50,6 @@ public class Solution {
 	
 	@Override
 	public Solution clone() {
-		return new Solution((BitSet) this.lieux.clone(),this.prix);
+		return new Solution((BitSet) this.lieux.clone(),this.prix, this.propa);
 	}
 }
