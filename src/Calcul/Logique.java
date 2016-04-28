@@ -652,7 +652,7 @@ public class Logique extends Thread {
 				copies.add(solution);
 		}
 		
-		LireFichiers.ecrireFichier(copies);
+		//LireFichiers.ecrireFichier(copies);
 		
 		//Rappel de la fonction avec la nouvelle generation
 		//On stop à l'itération voulu
@@ -660,6 +660,7 @@ public class Logique extends Thread {
 			recursifAlgogene(copies, iteration + 1);		
 		} else {
 			JOptionPane.showMessageDialog(null, "La meilleure solution donne un prix de : "+meilleureSolutionAlgogene.getPrix()+" €");
+			affichage.update();
 		}
 	}	
 	
@@ -772,12 +773,13 @@ public class Logique extends Thread {
 		List<Trajet> trajetsTmp = new ArrayList<Trajet>();
 		prix = Commun.PRIX_LIEU*solution.cardinality();
 
+		//Parcours des agences pour leur attribuer le lieu le plus proche 
 		for (Agence agence : agences) {
 			temp.setAgence(agence);
 			best = null;
 			min = Float.MAX_VALUE;
 			
-
+			//Parcours des bits et récupération du lieu associé
 			for (int i = solution.nextSetBit(0); i >= 0; i = solution.nextSetBit(i+1)) {
 				if (i == Integer.MAX_VALUE || i >= lieux.size()) {
 					break; // or (i+1) would overflow
@@ -786,32 +788,39 @@ public class Logique extends Thread {
 				courant.setNbPersonneAssociees(0);
 
 				temp.setLieu(courant);
+				//On vérifie que le lieu possède assez de places pour accepter l'agence
 				if(best == null || temp.getDistanceKm() < min && courant.getNbPersonneAssociees()+agence.getNbpersonnes() < 60) {
 					best = courant;
 					min = temp.getDistanceKm();
 				}
 			}
 
+			//Enregistrement du trajet
 			Trajet trajet = new Trajet(agence, best);
 			trajetsTmp.add(trajet);
 			best.getTrajets().add(trajet);
 			agence.setTrajet(trajet);
 
+			//Calcul du prix et de la distance puis enregistrement des personnes dans le lieu
 			prix += trajet.getDistanceKm()*agence.getNbpersonnes()*Commun.PRIX_TRAJET;
-			distance += trajet.getDistanceKm()*agence.getNbpersonnes()*2;
+			distance += trajet.getDistanceKm()*agence.getNbpersonnes();
 			best.setNbPersonneAssociees(best.getNbPersonneAssociees()+agence.getNbpersonnes());
 		}
 		
+		//Si le prix est meilleur que la meilleure solution courant et que la solution est valable on l'enregistre
 		if(prix < meilleureSolutionAlgogene.getPrix() && solution.cardinality() >= nbLieuxMin) {
 			resetTrajets();
 			prixTotal = prix;
 			distanceTotale = distance;
 			lieuTotal = solution.cardinality();
 			trajets = new ArrayList<Trajet>(trajetsTmp);
-			affichage.update();
 			
-			try { Thread.sleep(100);
-			} catch (InterruptedException e) {}
+			if(rafraichirCarte){
+				affichage.update();
+			
+				try { Thread.sleep(100);
+				} catch (InterruptedException e) {}
+			}
 		}
 		return prix;
 	}
