@@ -8,23 +8,19 @@ public class Lieu extends Noeud implements Comparable<Lieu> {
 
 	private int nbPersonneAssociees;
 	private boolean associe;
-	private boolean retour;
 	private ArrayList<Trajet> trajets;
 	
 	public Lieu() {
 		super();
 		
-		this.nbPersonneAssociees = 0;
-		this.associe = false;
-		this.retour = true;
+		this.reset();
 		this.trajets = new ArrayList<Trajet>();
 	}
 	
 	public Lieu(int id, String nom, String codepostal, float longitude, float latitude) {
 		super(id, nom, codepostal, longitude, latitude);
 		
-		this.nbPersonneAssociees = 0;
-		this.associe = false;
+		this.reset();
 		this.trajets = new ArrayList<Trajet>();
 	}
 	
@@ -44,14 +40,6 @@ public class Lieu extends Noeud implements Comparable<Lieu> {
 	}
 	public void setAssocie(boolean associe) {
 		this.associe = associe;
-	}
-	
-	public boolean isRetour() {
-		return retour;
-	}
-
-	public void setRetour(boolean retour) {
-		this.retour = retour;
 	}
 	
 	public ArrayList<Trajet> getTrajets() {

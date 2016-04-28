@@ -43,6 +43,7 @@ public class Logique extends Thread {
 	private int lieuTotal;
 	
 	private ArrayList<GroupeAgence> listeGroupes;
+	private int nombrePersonneAuTotal;
 	
 	/**
 	 * Constructeur
@@ -77,6 +78,7 @@ public class Logique extends Thread {
 	 */
 	public void lireAgences() {
 		agences = LireFichiers.LireAgence(pathFichier);
+		nombrePersonneAuTotal = agences.getNombrePersonne();
 	}
 	
 	/**
@@ -163,6 +165,18 @@ public class Logique extends Thread {
 		}
 	}	
 	
+	
+	
+	/********************************************************************
+	 * 
+	 * 
+	 * 							RECUIT SIMULE
+	 * 
+	 * 
+	 * 
+	 ********************************************************************/
+	
+	
 	/**
 	 * Lancement du recuit simulé sur les barycentres.
 	 */
@@ -185,6 +199,8 @@ public class Logique extends Thread {
 			//Retour de l'index de l'agence à partir de laquelle
 			//le récursif a effectué les groupes d'agence
 			int indexSwap = trajetBarycentre();
+			
+			prixTotal = calculPrix();
 			
 			//Affichage du prix
 			System.out.println("Prix solution "+i+" : " + prixTotal);
@@ -262,6 +278,7 @@ public class Logique extends Thread {
 	 * -> Recherche du barycentre de chaque groupe
 	 * -> Recherche du lieu le plus proche du barycentre
 	 * -> Association de chaque agence avec le lieu
+	 * -> Suppression de lieux inutiles
 	 */
 	public int trajetBarycentre() {
 		
@@ -361,27 +378,37 @@ public class Logique extends Thread {
 			}
 		}
 		
+		//Enfin, on essai de vider des lieux que ne sont pas utile
+		//en répartissant les agences sur d'autres lieux.
 		Collections.sort(lieuUtilises);
-		
 		while(lieuUtilises != null) {
 			lieuUtilises = viderLieuMoinsRempli(lieuUtilises);
 		}
+		
 		return indexSwap;
 	}
 	
+	/**
+	 * Vider le lieu le moins rempli en réorientant les agences sur d'autres lieux
+	 * Si la solution est meilleure, elle est adoptée, sinon elle est rejetée.
+	 * Lorsqu'un solution est impossible ou qu'elle est rejetée, on arrête d'enlever des lieux
+	 * @param utilises Liste des lieux utilisés
+	 * @return
+	 */
 	private ArrayList<Lieu> viderLieuMoinsRempli(ArrayList<Lieu> utilises) {
 		
 		ArrayList<Trajet> trajetsCopy = new ArrayList<Trajet>(trajets);
 		float distanceTotaleCopy = distanceTotale;
 		int lieuTotalCopy = lieuTotal;
 		
+		//Si le nombre de lieu minimum est atteint, on ne peut plus en enlever
 		if(utilises.size() == Math.ceil(this.agences.getNombrePersonne()/Commun.MAX_PERSONNE)) {
 			//System.out.println("NOMBRE DE LIEU MINIMUM");
 			return null;
 		}
 		
+		//Recherche des lieux non pleins et du lieu le plus vide
 		ArrayList<Lieu> lieuNonPlein = new ArrayList<Lieu>();
-		
 		Lieu plusVide = utilises.get(0);
 		for (Lieu lieu : utilises) {
 			if(lieu.getNbPersonneAssociees() != 60)
@@ -390,21 +417,10 @@ public class Logique extends Thread {
 			if(plusVide.getNbPersonneAssociees() > lieu.getNbPersonneAssociees())
 				plusVide = lieu;
 		}
-		
 		Collections.sort(lieuNonPlein);
-		//for (Lieu lieu : lieuNonPlein) {
-		//	System.out.println("Lieu non plein "+lieu.getNom()+" -> "+lieu.getNbPersonneAssociees());
-		//}
-		//System.out.println("-------------------");
-		//System.out.println("Lieu a virer "+plusVide.getNom()+" -> "+plusVide.getNbPersonneAssociees());
-		//System.out.println("-------------------");
-		ArrayList<Trajet> trajetEnMoins = new ArrayList<Trajet>();
-		for (Trajet trajet : plusVide.getTrajets()) {
-			trajetEnMoins.add(trajet);
-		}
 		
-		for (Trajet trajet : trajetEnMoins) {
-			//System.out.println("Agence "+trajet.getAgence().getNom()+" -> "+trajet.getAgence().getNbpersonnes());
+		//Sélection des trajets à déplacer sur d'autre lieu
+		for (Trajet trajet : plusVide.getTrajets()) {
 			
 			Agence agenceDuTrajet = trajet.getAgence();
 			Lieu lieuDuTrajet = trajet.getLieu();
@@ -431,8 +447,8 @@ public class Logique extends Thread {
 			trajetsCopy.add(nouveauTrajet);
 		}
 		
+		//Vérification de la nouvelle solution
 		float prix = calculPrix();
-		
 		if(prix < prixTotal) {
 			
 			utilises.remove(0);
@@ -451,6 +467,13 @@ public class Logique extends Thread {
 		return utilises;
 	}
 	
+	/**
+	 * Trouver le lieu utilisée le plus proche et capable d'accueillir une agence
+	 * @param lieuAssociesNonPlein
+	 * @param plusVide
+	 * @param agence
+	 * @return
+	 */
 	private Lieu lieuAssociePlusProche(ArrayList<Lieu> lieuAssociesNonPlein, Lieu plusVide, Agence agence) {
 		Trajet temp = new Trajet();
 		temp.setAgence(agence);
@@ -471,17 +494,6 @@ public class Logique extends Thread {
 		
 		return best;
 	}
-	
-	/*
-	private void recursifBarycentre(Lieu lieuAVider, ArrayList<Lieu> lieuUtilises) {
-		
-		int nombreDePersonne = lieuAVider.getNbPersonneAssociees();
-		Lieu lieuOptimum;
-		for (Lieu lieu : lieuUtilises) {
-			lieu.getNbPersonneAssociees()+nombreDePersonne <= 60
-		}
-	}
-	*/
 	
 	/**
 	 * Recherche récursive de voisin pour contruire les groupes d'agences
@@ -531,6 +543,19 @@ public class Logique extends Thread {
 		
 		return listeGroupes;
 	}
+	
+	
+	
+	
+	
+	/********************************************************************
+	 * 
+	 * 
+	 * 							ALGOGENE
+	 * 
+	 * 
+	 * 
+	 ********************************************************************/
 	
 	/**
 	 * Algorithme genetique

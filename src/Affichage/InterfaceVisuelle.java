@@ -121,21 +121,21 @@ public class InterfaceVisuelle extends JFrame
 		cb_lieu = new JCheckBox("<html>Afficher les lieux <font color=red>・</font></html>");
 		cb_lieu.setSelected(true);
 		cb_lieu.addItemListener(this);
-		cb_lieu.setBounds(20, height, 240, 20);
+		cb_lieu.setBounds(20, height, 180, 20);
 		pnl_control.add(cb_lieu);
+		
+		btn_choixAgence = new JButton("<html>Fichier<br>agences</html>");
+		btn_choixAgence.setBounds(220, height, 90, 50);
+		btn_choixAgence.addActionListener(this);
+		pnl_control.add(btn_choixAgence);
 		
 		height += 25;
 		
 		cb_agence = new JCheckBox("Afficher les agences ●");
 		cb_agence.setSelected(true);
 	    cb_agence.addItemListener(this);
-	    cb_agence.setBounds(20, height, 160, 20);
+	    cb_agence.setBounds(20, height, 180, 20);
 		pnl_control.add(cb_agence);
-		
-		btn_choixAgence = new JButton("Choix agences");
-		btn_choixAgence.setBounds(190, height, 120, 25);
-		btn_choixAgence.addActionListener(this);
-		pnl_control.add(btn_choixAgence);
 		
 		height += 25;
 		
@@ -192,7 +192,7 @@ public class InterfaceVisuelle extends JFrame
 		cb_barycentre = new JCheckBox("<html>Afficher les barycentres <font color=#1bee14>●</font></html>");
 		cb_barycentre.setSelected(true);
 		cb_barycentre.addItemListener(this);
-		cb_barycentre.setBounds(130, height, 240, 30);
+		cb_barycentre.setBounds(120, height-5, 230, 30);
 		pnl_control.add(cb_barycentre);
 		
 		height += 25;
