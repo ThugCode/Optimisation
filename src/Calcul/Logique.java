@@ -420,7 +420,11 @@ public class Logique extends Thread {
 		Collections.sort(lieuNonPlein);
 		
 		//Sélection des trajets à déplacer sur d'autre lieu
+		ArrayList<Trajet> trajetEnMoins = new ArrayList<Trajet>();
 		for (Trajet trajet : plusVide.getTrajets()) {
+			trajetEnMoins.add(trajet);
+		}
+		for (Trajet trajet : trajetEnMoins) {
 			
 			Agence agenceDuTrajet = trajet.getAgence();
 			Lieu lieuDuTrajet = trajet.getLieu();
