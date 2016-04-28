@@ -594,67 +594,60 @@ public class Logique extends Thread {
 			solution = new Solution(bitSet,new Float(0), new Float(0));
 			generation.add(solution);
 		} 
-		recursifAlgogene(generation, 1);
+		iteratifAlgogene(generation, iterations);
 	}
 	
 	/**
-	 * Fonction recursive qui applique les trois étapes de l'algorithme génétique
+	 * Fonction itérative qui applique les trois étapes de l'algorithme génétique
 	 * qui sont la reproduction, le croissement, et mutation 
 	 * 
 	 * @param generation, La génération en cours
 	 * @param iteration, L'itération actuelle
 	 */
-	private void recursifAlgogene(List<Solution> generation, int iteration) {
+	private void iteratifAlgogene(List<Solution> generation, int iteration) {
 		List<Solution> solutions = new ArrayList<Solution>();
 		Random r = new Random();
 		
-		solutions = Reproduction(generation);
-		
-		Solution solution;
-		Solution copie;
-		Solution temp;
-		ArrayList<Solution> copies = new ArrayList<Solution>();	
-		int indexCroissement;
-		
-		//Croisements et mutations en fonction d'une probabilité
-		while(solutions.size() > 0) {
-			solution = solutions.get(0);
-			solutions.remove(solution);
-			
-			if(solutions.size() > 0){ 
-				//Croisement
-				indexCroissement = r.nextInt(solution.getLieux().size());
-				temp = solutions.get(r.nextInt(solutions.size()));
-				solutions.remove(temp);
-				copie = solution.clone();
-				
-				//Parcours des bits à partir de l'index de croissement
-				//Echange de ces bits entre les deux solutions (solution et temp)
-				for(int l = indexCroissement + 1; l < lieux.size(); l++) {
-					solution.getLieux().set(l, temp.getLieux().get(l));
-					temp.getLieux().set(l,copie.getLieux().get(l));
+		for(int i = 0; i < iteration; i++) {
+
+			solutions = Reproduction(generation);
+
+			Solution solution;
+			Solution copie;
+			Solution temp;
+			List<Solution> copies = new ArrayList<Solution>();	
+			int indexCroissement;
+
+			//Croisements et mutations en fonction d'une probabilité
+			while(solutions.size() > 0) {
+				solution = solutions.get(0);
+				solutions.remove(solution);
+
+				if(solutions.size() > 0){ 
+					//Croisement
+					indexCroissement = r.nextInt(solution.getLieux().size());
+					temp = solutions.get(r.nextInt(solutions.size()));
+					solutions.remove(temp);
+					copie = solution.clone();
+
+					//Parcours des bits à partir de l'index de croissement
+					//Echange de ces bits entre les deux solutions (solution et temp)
+					for(int l = indexCroissement + 1; l < lieux.size(); l++) {
+						solution.getLieux().set(l, temp.getLieux().get(l));
+						temp.getLieux().set(l,copie.getLieux().get(l));
+					}
+
+					copies.add(temp);
 				}
-				
-				copies.add(temp);
-			}
-				
+
 				//Mutation
 				if(r.nextFloat() < tauxMutation){
-					int index = solution.getLieux().nextSetBit((r.nextInt(solution.getLieux().size())));
-					if(index != -1) {
-						solution.getLieux().flip(index);
-					}
+					solution.getLieux().flip((r.nextInt(solution.getLieux().size())));
 				}
-				
+
 				copies.add(solution);
-		}
-		
-		//Rappel de la fonction avec la nouvelle generation
-		//On stop à l'itération voulu
-		if(iteration < iterations) {
-			recursifAlgogene(copies, iteration + 1);		
-		} else {
-			System.out.println("Meilleure solution : " + meilleureSolutionAlgogene);
+			}
+			generation = new ArrayList<Solution>(copies);
 		}
 	}
 	
@@ -677,9 +670,6 @@ public class Logique extends Thread {
 			//Calcul du prix de la solution
 			prix = calculPrixSolution(solution.getLieux());
 			solution.setPrix(prix);
-			float valeur = 1/prix;
-			solution.setProba(valeur);
-			sommeInverse += valeur;
 
 			if(prix < meilleureSolutionAlgogene.getPrix() && solution.getLieux().cardinality() >= nbLieuxMin)
 				meilleureSolutionAlgogene = solution;			
@@ -691,9 +681,18 @@ public class Logique extends Thread {
 				return b1.getPrix().compareTo(b2.getPrix());
 			}
 		});
+		
+		//Inversion des prix de la moitié des meilleures solutions
+		for(int i = 0; i < generation.size()/2; i++) {
+			Solution solution = generation.get(i);
+			float valeur = 1/solution.getPrix();
+			solution.setProba(valeur);
+			sommeInverse += valeur;	
+		}
 
 		//Calcul de la probabilité de choisir une solution
-		for(Solution solution : generation) {
+		for(int i = 0; i < generation.size()/2; i++) {
+			Solution solution = generation.get(i);
 			float valeur = solution.getProba();
 			valeur = valeur/sommeInverse;
 			solution.setProba(valeur);
@@ -712,7 +711,7 @@ public class Logique extends Thread {
 			probCumul = 0;
 			index = 0;
 			
-			for(int j = 0; j < generation.size(); j++) {
+			for(int j = 0; j < generation.size()/2; j++) {
 				probCumul += generation.get(j).getProba();
 				if(proba <= probCumul){
 					break;
@@ -763,9 +762,6 @@ public class Logique extends Thread {
 		List<Trajet> trajetsTmp = new ArrayList<Trajet>();
 		prix = Commun.PRIX_LIEU*solution.cardinality();
 
-		//Melange de la liste des agences afin de maximer l'exploration de solutions diverses
-		//Collections.shuffle(agences);
-
 		for (Agence agence : agences) {
 			temp.setAgence(agence);
 			best = null;
@@ -780,7 +776,7 @@ public class Logique extends Thread {
 				courant.setNbPersonneAssociees(0);
 
 				temp.setLieu(courant);
-				if(best == null || temp.getDistanceKm() < min && courant.getNbPersonneAssociees() < 60) {
+				if(best == null || temp.getDistanceKm() < min && courant.getNbPersonneAssociees()+agence.getNbpersonnes() < 60) {
 					best = courant;
 					min = temp.getDistanceKm();
 				}
