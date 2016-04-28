@@ -44,6 +44,7 @@ public class Logique extends Thread {
 	
 	private ArrayList<GroupeAgence> listeGroupes;
 	private int nombrePersonneAuTotal;
+	private boolean enCalcul;
 	
 	/**
 	 * Constructeur
@@ -71,6 +72,8 @@ public class Logique extends Thread {
     	
     	//Initialisation des trajets
     	resetTrajets();
+    	
+    	setEnCalcul(false);
 	}
 	
 	/**
@@ -914,5 +917,13 @@ public class Logique extends Thread {
 
 	public void setTauxMutation(float tauxMutation) {
 		this.tauxMutation = tauxMutation;
+	}
+
+	public boolean isEnCalcul() {
+		return enCalcul;
+	}
+
+	public void setEnCalcul(boolean enCalcul) {
+		this.enCalcul = enCalcul;
 	}
 }

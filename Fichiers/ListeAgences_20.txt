@@ -1,0 +1,20 @@
+"id";"nom";"codepostal";"longitude";"latitude";"nbpersonnes1"
+"saint-romain-sur-gironde";"Saint-Romain-sur-Gironde";"17240";-0.75;45.45;9
+"matigny";"Matigny";"80400";3;49.8;2
+"salagnac";"Salagnac";"24160";1.18333;45.3167;10
+"harprich";"Harprich";"57340";6.65;48.9667;3
+"grand-bornand";"Le Grand-Bornand";"74450";6.43333;45.95;3
+"bey-71";"Bey";"71620";4.96667;46.8167;8
+"oudeuil";"Oudeuil";"60860";2.01667;49.55;2
+"maltat";"Maltat";"71140";3.81667;46.6833;6
+"lieuran-cabrieres";"Lieuran-Cabrières";"34800";3.43333;43.5833;1
+"coiffy-le-haut";"Coiffy-le-Haut";"52400";5.7;47.9;6
+"frise";"Frise";"80340";2.81667;49.9333;10
+"lagnicourt-marcel";"Lagnicourt-Marcel";"62159";2.95;50.15;8
+"chaumes-en-brie";"Chaumes-en-Brie";"77390";2.85;48.6667;6
+"cazilhac-34";"Cazilhac";"34190";3.7;43.925;6
+"oresmaux";"Oresmaux";"80160";2.26667;49.7667;10
+"velleches";"Vellèches";"86230";0.516667;46.9833;2
+"suhescun";"Suhescun";"64780";-1.2;43.2333;2
+"marie";"Marie";"06420";7.13333;44.0333;2
+"pretot-vicquemare";"Prétot-Vicquemare";"76560";0.85;49.7333;9

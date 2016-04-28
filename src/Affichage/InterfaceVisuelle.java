@@ -18,6 +18,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSlider;
 import javax.swing.JTextField;
@@ -386,21 +387,41 @@ public class InterfaceVisuelle extends JFrame
 		
 		if(e.getSource() == btn_barycentre) {
 			
+			if(logique.isEnCalcul()) {
+				JOptionPane.showMessageDialog(null, "Impossible ! Algorithme déjà en traitement.");
+				return;
+			}
+			
 			Thread t1 = new Thread(new Runnable() {
 			     public void run() {
+			    	 logique.setEnCalcul(true);
 			    	 logique.recuitSimuleBarycentre();
+			    	 logique.setEnCalcul(false);
 			     }
 			});  
 			t1.start();
 			
 		} else if(e.getSource() == btn_algogene) {
+			
+			if(logique.isEnCalcul()) {
+				JOptionPane.showMessageDialog(null, "Impossible ! Algorithme déjà en traitement.");
+				return;
+			}
+			
 			Thread t2 = new Thread(new Runnable() {
 				public void run() {
+					logique.setEnCalcul(true);
 					logique.algogene();
+					logique.setEnCalcul(false);
 				}
 			});
 			t2.start();
 		} else if(e.getSource() == btn_choixAgence) {
+			
+			if(logique.isEnCalcul()) {
+				JOptionPane.showMessageDialog(null, "Impossible ! Algorithme déjà en traitement.");
+				return;
+			}
 			
 			File file = new File("Fichiers");
 			file = new File(file.getAbsolutePath());

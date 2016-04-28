@@ -48,15 +48,15 @@ public class LireFichiers {
 							if(!nouvelleAgence.getVoisins().contains(temp)) {
 								nouvelleAgence.getVoisins().add(temp);
 								Collections.sort(nouvelleAgence.getVoisins());
-								if(nouvelleAgence.getVoisins().size()>Commun.VOISINS_AGENCES)
-									nouvelleAgence.getVoisins().remove(Commun.VOISINS_AGENCES);
+								if(nouvelleAgence.getVoisins().size()>Commun.MAX_VOISINS_AGENCES)
+									nouvelleAgence.getVoisins().remove(Commun.MAX_VOISINS_AGENCES);
 							}
 							
 							if(!voisin.getVoisins().contains(temp)) {
 								voisin.getVoisins().add(temp);
 								Collections.sort(voisin.getVoisins());
-								if(voisin.getVoisins().size()>Commun.VOISINS_AGENCES)
-									voisin.getVoisins().remove(Commun.VOISINS_AGENCES);
+								if(voisin.getVoisins().size()>Commun.MAX_VOISINS_AGENCES)
+									voisin.getVoisins().remove(Commun.MAX_VOISINS_AGENCES);
 							}
 						}
 					}
