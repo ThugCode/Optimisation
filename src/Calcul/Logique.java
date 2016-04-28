@@ -581,7 +581,7 @@ public class Logique extends Thread {
 		//Génération des solutions aléatoire
 		while(generation.size() < tailleGeneration) { 
 			BitSet bitSet = new BitSet(lieux.size()); 
-			int nbIteration = nbLieuxMin+ r.nextInt(nbLieuxMin*5); 
+			int nbIteration = nbLieuxMin + nbLieuxMin*5 +r.nextInt(nbLieuxMin*5); 
 			int nbBitSet = 0; 
 			
 			while(nbBitSet < nbIteration) {
@@ -640,7 +640,10 @@ public class Logique extends Thread {
 				
 				//Mutation
 				if(r.nextFloat() < tauxMutation){
-					solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
+					int index = solution.getLieux().nextSetBit((r.nextInt(solution.getLieux().size())));
+					if(index != -1) {
+						solution.getLieux().flip(index);
+					}
 				}
 				
 				copies.add(solution);
@@ -688,8 +691,6 @@ public class Logique extends Thread {
 				return b1.getPrix().compareTo(b2.getPrix());
 			}
 		});
-		
-		System.out.println("Génération : " + generation.get(0));
 
 		//Calcul de la probabilité de choisir une solution
 		for(Solution solution : generation) {
@@ -697,6 +698,8 @@ public class Logique extends Thread {
 			valeur = valeur/sommeInverse;
 			solution.setProba(valeur);
 		}
+		
+		System.out.println("Génération : " + generation.get(0));
 		
 		float proba;
 		float probCumul;
@@ -793,13 +796,16 @@ public class Logique extends Thread {
 			best.setNbPersonneAssociees(best.getNbPersonneAssociees()+agence.getNbpersonnes());
 		}
 		
-		if(prix < prixTotal && solution.cardinality() >= nbLieuxMin) {
+		if(prix < meilleureSolutionAlgogene.getPrix() && solution.cardinality() >= nbLieuxMin) {
 			resetTrajets();
 			prixTotal = prix;
 			distanceTotale = distance;
 			lieuTotal = solution.cardinality();
 			trajets = new ArrayList<Trajet>(trajetsTmp);
 			affichage.update();
+			
+			try { Thread.sleep(100);
+			} catch (InterruptedException e) {}
 		}
 		return prix;
 	}
