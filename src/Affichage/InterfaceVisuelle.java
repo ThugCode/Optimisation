@@ -68,6 +68,8 @@ public class InterfaceVisuelle extends JFrame
 	private JTextField txt_totalDistance;
 	private JTextField txt_totalPrix;
 	private JTextField txt_iterations;
+	private JTextField txt_tailleGeneration;
+	private JTextField txt_tauxMutation;
 	private JSlider slider_temperature;
 
 	public InterfaceVisuelle() {
@@ -114,64 +116,59 @@ public class InterfaceVisuelle extends JFrame
 		lbl_line_noeuds.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_noeuds);
 		
-		height += 20;
+		height += 25;
 		
 		cb_lieu = new JCheckBox("<html>Afficher les lieux <font color=red>・</font></html>");
 		cb_lieu.setSelected(true);
 		cb_lieu.addItemListener(this);
-		cb_lieu.setBounds(20, height, 240, 30);
+		cb_lieu.setBounds(20, height, 240, 20);
 		pnl_control.add(cb_lieu);
 		
-		height += 20;
+		height += 25;
 		
 		cb_agence = new JCheckBox("Afficher les agences ●");
 		cb_agence.setSelected(true);
 	    cb_agence.addItemListener(this);
-	    cb_agence.setBounds(20, height, 180, 30);
+	    cb_agence.setBounds(20, height, 160, 20);
 		pnl_control.add(cb_agence);
 		
 		btn_choixAgence = new JButton("Choix agences");
-		btn_choixAgence.setBounds(190, height, 120, 30);
+		btn_choixAgence.setBounds(190, height, 120, 25);
 		btn_choixAgence.addActionListener(this);
 		pnl_control.add(btn_choixAgence);
 		
-		height += 30;
+		height += 25;
 		
 		JLabel lbl_line_arcs = new JLabel("<html><font color=orange>Arcs -------------------</font></html>");
 		lbl_line_arcs.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_arcs);
 		
-		height += 20;
+		height += 25;
 		
 		cb_trajet = new JCheckBox("Afficher les trajets ---");
 	    cb_trajet.setSelected(true);
 	    cb_trajet.addItemListener(this);
-	    cb_trajet.setBounds(20, height, 240, 30);
+	    cb_trajet.setBounds(20, height, 240, 20);
 		pnl_control.add(cb_trajet);
 		
-		height += 20;
+		height += 25;
 		
 		cb_liensAgence = new JCheckBox("<html>Afficher les liens d'agences <font color=blue>---</font></html>");
 		cb_liensAgence.setSelected(false);
 		cb_liensAgence.addItemListener(this);
-		cb_liensAgence.setBounds(20, height, 240, 30);
+		cb_liensAgence.setBounds(20, height, 240, 20);
 		pnl_control.add(cb_liensAgence);
 		
-		height += 30;
+		height += 25;
 		
-		JLabel lbl_line_recuit = new JLabel("<html><font color=orange>Recuit simulé ------------</font></html>");
-		lbl_line_recuit.setBounds(20, height, 280, 30);
-		pnl_control.add(lbl_line_recuit);
+		JLabel lbl_line_iteration = new JLabel("<html><font color=orange>Itérations ------------</font></html>");
+		lbl_line_iteration.setBounds(20, height, 280, 30);
+		pnl_control.add(lbl_line_iteration);
 		
-		height += 30;
-		
-		btn_barycentre = new JButton("Barycentre");
-		btn_barycentre.setBounds(20, height, 120, 40);
-		btn_barycentre.addActionListener(this);
-		pnl_control.add(btn_barycentre);
+		height += 25;
 		
 		JLabel lbl_iterations = new JLabel("Itérations :");
-		lbl_iterations.setBounds(150, height, 70, 30);
+		lbl_iterations.setBounds(20, height, 70, 30);
 		pnl_control.add(lbl_iterations);
 		
 		txt_iterations = new JTextField("500");
@@ -179,7 +176,26 @@ public class InterfaceVisuelle extends JFrame
 		txt_iterations.addKeyListener(this);
 		pnl_control.add(txt_iterations);
 		
-		height += 40;
+		height += 25;
+		
+		JLabel lbl_line_recuit = new JLabel("<html><font color=orange>Recuit simulé ------------</font></html>");
+		lbl_line_recuit.setBounds(20, height, 280, 30);
+		pnl_control.add(lbl_line_recuit);
+		
+		height += 25;
+		
+		btn_barycentre = new JButton("Barycentre");
+		btn_barycentre.setBounds(20, height, 100, 25);
+		btn_barycentre.addActionListener(this);
+		pnl_control.add(btn_barycentre);
+		
+		cb_barycentre = new JCheckBox("<html>Afficher les barycentres <font color=#1bee14>●</font></html>");
+		cb_barycentre.setSelected(true);
+		cb_barycentre.addItemListener(this);
+		cb_barycentre.setBounds(130, height, 240, 30);
+		pnl_control.add(cb_barycentre);
+		
+		height += 25;
 		
 		JLabel lbl_temperature = new JLabel("Température :");
 		lbl_temperature.setBounds(20, height, 90, 30);
@@ -191,34 +207,47 @@ public class InterfaceVisuelle extends JFrame
 		slider_temperature.addChangeListener(this);
 		pnl_control.add(slider_temperature);
 
-		height += 30;
-		
-		cb_barycentre = new JCheckBox("<html>Afficher les barycentres <font color=#1bee14>●</font></html>");
-		cb_barycentre.setSelected(true);
-		cb_barycentre.addItemListener(this);
-		cb_barycentre.setBounds(20, height, 240, 30);
-		pnl_control.add(cb_barycentre);
-		
-		height += 30;
+		height += 25;		
 		
 		JLabel lbl_line_algogene = new JLabel("<html><font color=orange>Algogène ------------</font></html>");
 		lbl_line_algogene.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_algogene);
 		
-		height += 30;
+		height += 25;
 		
 		btn_algogene = new JButton("Algogene");
-		btn_algogene.setBounds(100, height, 120, 40);
+		btn_algogene.setBounds(20, height, 100, 25);
 		btn_algogene.addActionListener(this);
 		pnl_control.add(btn_algogene);
+				
+		JLabel lbl_tailleGeneration = new JLabel("Taille génération :");
+		lbl_tailleGeneration.setBounds(125, height, 200, 30);
+		pnl_control.add(lbl_tailleGeneration);
 		
-		height += 40;
+		txt_tailleGeneration = new JTextField("100");
+		txt_tailleGeneration.setBounds(240, height, 60, 30);
+		txt_tailleGeneration.addKeyListener(this);
+		pnl_control.add(txt_tailleGeneration);
+
+		height += 25;
+		
+		JLabel lbl_tauxDeMutation = new JLabel("Taux de mutation (en %) :");
+		lbl_tauxDeMutation.setBounds(20, height, 200, 30);
+		pnl_control.add(lbl_tauxDeMutation);
+		
+		txt_tauxMutation = new JTextField("1");
+		txt_tauxMutation.setBounds(240, height, 60, 30);
+		txt_tauxMutation.addKeyListener(this);
+		pnl_control.add(txt_tauxMutation);
+
+		height += 25;
+
 		
 		JLabel lbl_line_resultats = new JLabel("<html><font color=orange>Résultats ------------");
 		lbl_line_resultats.setBounds(20, height, 280, 30);
 		pnl_control.add(lbl_line_resultats);
 		
-		height += 20;
+		height += 25;
 		
 		JLabel lbl_totalPersonne = new JLabel("Nombre de personnes :");
 		lbl_totalPersonne.setBounds(20, height, 160, 30);
@@ -430,6 +459,17 @@ public class InterfaceVisuelle extends JFrame
 		if(e.getSource() == txt_iterations) {
 			if(estEntier(txt_iterations.getText())) {
 				logique.setIterations(Integer.parseInt(txt_iterations.getText()));
+			}
+		}
+		if(e.getSource() == txt_tailleGeneration) {
+			if(estEntier(txt_tailleGeneration.getText())) {
+				logique.setTailleGeneration(Integer.parseInt(txt_tailleGeneration.getText()));
+			}
+		}
+		
+		if(e.getSource() == txt_tauxMutation) {
+			if(estEntier(txt_tauxMutation.getText())) {
+				logique.setTauxMutation(Float.parseFloat(txt_tauxMutation.getText())/100);
 			}
 		}
 	}

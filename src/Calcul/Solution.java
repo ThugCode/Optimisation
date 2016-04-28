@@ -6,7 +6,7 @@ public class Solution {
 
 	private BitSet lieux;
 	private Float prix;
-	private Float propa;
+	private Float proba;
 	
 	public Solution() {
 		this.lieux = new BitSet();
@@ -16,7 +16,7 @@ public class Solution {
 	public Solution(BitSet lieux, Float prix, Float propa) {
 		this.lieux = lieux;
 		this.prix = prix;
-		this.propa = propa;
+		this.proba = propa;
 	}
 
 	public BitSet getLieux() {
@@ -35,21 +35,21 @@ public class Solution {
 		this.prix = prix;
 	}
 
-	public Float getPropa() {
-		return propa;
+	public Float getProba() {
+		return proba;
 	}
 
-	public void setPropa(float propa) {
-		this.propa = propa;
+	public void setProba(float proba) {
+		this.proba = proba;
 	}
 	
 	@Override
 	public String toString() {
-		return "Lieux : " + this.lieux + "\n" + "Prix : " + this.prix + " Prop : " + this.propa ;
+		return "Prix : " + this.prix + " Prob : " + this.proba ;
 	}
 	
 	@Override
 	public Solution clone() {
-		return new Solution((BitSet) this.lieux.clone(),this.prix, this.propa);
+		return new Solution((BitSet) this.lieux.clone(),this.prix, this.proba);
 	}
 }

@@ -7,5 +7,4 @@ public class Commun {
 	public static final float PRIX_TRAJET = 0.8f;
 	public static final int TEMPERATURE_MAX = 50000;
 	public static final int VOISINS_AGENCES = 30;
-	public static final int NB_SOLUTION_ALGOGENE = 100;
 }

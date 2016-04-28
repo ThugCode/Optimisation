@@ -36,6 +36,8 @@ public class Logique extends Thread {
 	private boolean rafraichirCarte;
 	private int temperature;
 	private int iterations;
+	private int tailleGeneration;
+	private float tauxMutation;
 	private float distanceTotale;
 	private float prixTotal;
 	private int lieuTotal;
@@ -64,6 +66,7 @@ public class Logique extends Thread {
     	setRafraichirCarte(true);
     	setTemperature(Commun.TEMPERATURE_MAX);
     	setIterations(500);
+    	setTailleGeneration(100);
     	
     	//Initialisation des trajets
     	resetTrajets();
@@ -246,7 +249,7 @@ public class Logique extends Thread {
 		
 		for(Trajet trajet : trajets) {
 			prix += trajet.getAgence().getNbpersonnes()
-					*0.8
+					*Commun.PRIX_TRAJET
 					*trajet.getDistanceKm();
 		}
 		
@@ -529,6 +532,11 @@ public class Logique extends Thread {
 		return listeGroupes;
 	}
 	
+	/**
+	 * Algorithme genetique
+	 * Dans cette fonction on crée les solutions de la première génération
+	 * aléatoirement, puis on appelle la fonction récursif qui va executer l'algorithme
+	 */
 	public void algogene() {
 		
 		meilleureSolutionAlgogene = new Solution();
@@ -541,7 +549,8 @@ public class Logique extends Thread {
 		//Calcul du nombre de lieux minimun pour qu'une solution soit viable
 		calculNbLieuxMin();
 		
-		while(generation.size() < Commun.NB_SOLUTION_ALGOGENE) { 
+		//Génération des solutions aléatoire
+		while(generation.size() < tailleGeneration) { 
 			BitSet bitSet = new BitSet(lieux.size()); 
 			int nbIteration = nbLieuxMin+ r.nextInt(nbLieuxMin*5); 
 			int nbBitSet = 0; 
@@ -559,22 +568,18 @@ public class Logique extends Thread {
 		recursifAlgogene(generation, 1);
 	}
 	
+	/**
+	 * Fonction recursive qui applique les trois étapes de l'algorithme génétique
+	 * qui sont la reproduction, le croissement, et mutation 
+	 * 
+	 * @param generation, La génération en cours
+	 * @param iteration, L'itération actuelle
+	 */
 	private void recursifAlgogene(List<Solution> generation, int iteration) {
 		List<Solution> solutions = new ArrayList<Solution>();
 		Random r = new Random();
 		
-		//Affichage de la génération
-//		System.out.println("Génération :" + iteration);
-//		for(Solution s : generation) {
-//			System.out.println(s.toString());
-//		}
-		
 		solutions = Reproduction(generation);
-		
-//		System.out.println("Solution reproduitent :" + iteration);
-//		for(Solution s : solutions) {
-//			System.out.println(s.toString());
-//		}
 		
 		Solution solution;
 		Solution copie;
@@ -582,38 +587,54 @@ public class Logique extends Thread {
 		ArrayList<Solution> copies = new ArrayList<Solution>();	
 		int indexCroissement;
 		
-		//Croisements et mutations en fonction d'un random
+		//Croisements et mutations en fonction d'une probabilité
 		while(solutions.size() > 0) {
 			solution = solutions.get(0);
 			solutions.remove(solution);
 			
+			if(solutions.size() > 0){ 
 				//Croisement
 				indexCroissement = r.nextInt(solution.getLieux().size());
 				temp = solutions.get(r.nextInt(solutions.size()));
 				solutions.remove(temp);
 				copie = solution.clone();
 				
+				//Parcours des bits à partir de l'index de croissement
+				//Echange de ces bits entre les deux solutions (solution et temp)
 				for(int l = indexCroissement + 1; l < lieux.size(); l++) {
 					solution.getLieux().set(l, temp.getLieux().get(l));
 					temp.getLieux().set(l,copie.getLieux().get(l));
 				}
 				
+				copies.add(temp);
+			}
+				
 				//Mutation
-				if(r.nextFloat() < 0.10){
+				if(r.nextFloat() < tauxMutation){
 					solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
 				}
 				
 				copies.add(solution);
-				copies.add(temp);
 		}
+		
 		//Rappel de la fonction avec la nouvelle generation
-		if(iteration < 1000) {
+		//On stop à l'itération voulu
+		if(iteration < iterations) {
 			recursifAlgogene(copies, iteration + 1);		
 		} else {
 			System.out.println("Meilleure solution : " + meilleureSolutionAlgogene);
 		}
 	}
 	
+	
+	/**
+	 * Reproduit les solutions en fonction de la probabilité de la solution
+	 * Pour calculer la probabilité on inverse le prix puis on le divise par la
+	 * somme des inverses, afin d'obtenir des poids qui favorise les solutions avec
+	 * un prix faible
+	 * @param generation, La génération à reproduire
+	 * @return La liste des solutions reproduitent
+	 */
 	private List<Solution> Reproduction(List<Solution> generation) {
 		
 		float prix = 0;
@@ -625,7 +646,7 @@ public class Logique extends Thread {
 			prix = calculPrixSolution(solution.getLieux());
 			solution.setPrix(prix);
 			float valeur = 1/prix;
-			solution.setPropa(valeur);
+			solution.setProba(valeur);
 			sommeInverse += valeur;
 
 			if(prix < meilleureSolutionAlgogene.getPrix() && solution.getLieux().cardinality() >= nbLieuxMin)
@@ -641,27 +662,27 @@ public class Logique extends Thread {
 		
 		System.out.println("Génération : " + generation.get(0));
 
-		//Calcul de la propabilité de choisir une solution
+		//Calcul de la probabilité de choisir une solution
 		for(Solution solution : generation) {
-			float valeur = solution.getPropa();
+			float valeur = solution.getProba();
 			valeur = valeur/sommeInverse;
-			solution.setPropa(valeur);
+			solution.setProba(valeur);
 		}
 		
-		float propa;
-		float propCumul;
+		float proba;
+		float probCumul;
 		int index;
 		Random r = new Random();
 		
-		//Reproduction avec selection aléatoire en fonction des propabilités
-		for(int i = 0; i < Commun.NB_SOLUTION_ALGOGENE; i++) {
-			propa = r.nextFloat();
-			propCumul = 0;
+		//Reproduction avec selection aléatoire en fonction des probabilités
+		for(int i = 0; i < tailleGeneration; i++) {
+			proba = r.nextFloat();
+			probCumul = 0;
 			index = 0;
 			
 			for(int j = 0; j < generation.size(); j++) {
-				propCumul += generation.get(j).getPropa();
-				if(propa <= propCumul){
+				probCumul += generation.get(j).getProba();
+				if(proba <= probCumul){
 					break;
 				} else {
 					index++;
@@ -672,7 +693,6 @@ public class Logique extends Thread {
 			
 			solutions.add(solution);
 		}
-		
 		return solutions;
 	}
 	
@@ -695,7 +715,11 @@ public class Logique extends Thread {
 		float y = numerateurY / denominateurY;
 		return new float[] { x, y };
 	}
-	
+	/**
+	 * Calcul du prix d'une solution et enregistrement des trajets si c'est une meilleure solution
+	 * @param solution, La solution à calculer
+	 * @return Le prix de la solution
+	 */
 	private float calculPrixSolution(BitSet solution) {
 
 		Lieu best;
@@ -703,10 +727,12 @@ public class Logique extends Thread {
 		Lieu courant;
 		Trajet temp = new Trajet();
 		float prix = 0;
+		float distance = 0;
+		List<Trajet> trajetsTmp = new ArrayList<Trajet>();
 		prix = Commun.PRIX_LIEU*solution.cardinality();
 
 		//Melange de la liste des agences afin de maximer l'exploration de solutions diverses
-		Collections.shuffle(agences);
+		//Collections.shuffle(agences);
 
 		for (Agence agence : agences) {
 			temp.setAgence(agence);
@@ -729,152 +755,26 @@ public class Logique extends Thread {
 			}
 
 			Trajet trajet = new Trajet(agence, best);
+			trajetsTmp.add(trajet);
 			best.getTrajets().add(trajet);
 			agence.setTrajet(trajet);
 
 			prix += trajet.getDistanceKm()*agence.getNbpersonnes()*Commun.PRIX_TRAJET;
+			distance += trajet.getDistanceKm()*agence.getNbpersonnes()*2;
 			best.setNbPersonneAssociees(best.getNbPersonneAssociees()+agence.getNbpersonnes());
 		}
+		
+		if(prix < prixTotal && solution.cardinality() >= nbLieuxMin) {
+			resetTrajets();
+			prixTotal = prix;
+			distanceTotale = distance;
+			lieuTotal = solution.cardinality();
+			trajets = new ArrayList<Trajet>(trajetsTmp);
+			affichage.update();
+		}
 		return prix;
 	}
-	/**
-	 * @deprecated
-	 */
-	private float calculPrixSolutionOld(BitSet solution) {
-		//Copie de la liste des agences afin de pouvoir en supprimer
-		ArrayList<Agence> agencesTmp = new ArrayList<Agence>(agences); 
-		Agence best;
-		Lieu courant;
-		int nbPersonnes;
-		float min;
-		float prix = 0;
-		boolean nonPlein;
-		Random r = new Random();
-		Trajet temp = new Trajet();
-		
-		//Si il y a moins de lieu que le nombre minimum alors on rajoute des lieux aléatoirement
-		while(solution.cardinality() < nbLieuxMin) {
-			solution.set(r.nextInt(lieux.size()));
-		}
-		
-		//Parcours des lieux et associations des agences les plus proches
-		for (int i = solution.nextSetBit(0); i >= 0; i = solution.nextSetBit(i+1)) {
-		     if (i == Integer.MAX_VALUE || i > lieux.size()) {
-		         break; // or (i+1) would overflow
-		     }
-		     
-			nonPlein = true;
-			nbPersonnes = 0;
-			prix += Commun.PRIX_LIEU;
-			courant = lieux.get(i);
-			courant.setNbPersonneAssociees(0);
-			
-			while(nonPlein) {
-				temp.setLieu(courant);
-				best = null;
-				min = Float.MAX_VALUE;
-				
-				//Determination de l'agence la plus proche
-				for(Agence agence : agencesTmp) {
-					temp.setAgence(agence);
-					if(best == null || temp.getDistanceKm() < min) {
-						best = agence;
-						min = temp.getDistanceKm();
-					}
-				}
-				
-				if(best != null) {
-					nbPersonnes = courant.getNbPersonneAssociees() + best.getNbpersonnes();
-				
-					//S'il reste de la place on associe l'agence sinon on passe au lieu suivant
-					if(nbPersonnes < 60) {
-						agencesTmp.remove(best);
-						temp.setAgence(best);
-						courant.setNbPersonneAssociees(nbPersonnes);
-						prix += temp.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET;
-					}
-					else {
-						nonPlein = false;
-					}
-				}
-				else {
-					nonPlein = false;
-				}
-			}
-		 }
-		
-		return prix;
-	}
-
-	/**
-	 * @deprecated
-	 */
-	private void miseAJourMeilleurSolution(Solution solution) {
-		//Copie de la liste des agences afin de pouvoir en supprimer
-		ArrayList<Agence> agencesTmp = new ArrayList<Agence>(agences); 
-		Agence best;
-		Lieu courant;
-		int nbPersonnes;
-		float min;
-		boolean nonPlein;
-		Trajet trajetTmp = new Trajet();
-		
-		prixTotal = 0;
-		resetTrajets();
-		meilleureSolutionAlgogene = solution;
-
-		//Parcours des lieux et associations des agences les plus proches
-		for (int i = solution.getLieux().nextSetBit(0); i >= 0; i = solution.getLieux().nextSetBit(i+1)) {
-			if (i == Integer.MAX_VALUE || i > lieux.size()) {
-				break; // or (i+1) would overflow
-			}
-
-			nonPlein = true;
-			nbPersonnes = 0;
-			prixTotal += Commun.PRIX_LIEU;
-			lieuTotal++;
-			courant = lieux.get(i);
-			courant.setNbPersonneAssociees(0);
-
-			while(nonPlein) {
-				trajetTmp.setLieu(courant);
-				best = null;
-				min = Float.MAX_VALUE;
-
-				//Determination de l'agence la plus proche
-				for(Agence agence : agencesTmp) {
-					trajetTmp.setAgence(agence);
-					if(best == null || trajetTmp.getDistanceKm() < min) {
-						best = agence;
-						min = trajetTmp.getDistanceKm();
-					}
-				}
-
-				if(best != null) {
-					nbPersonnes = courant.getNbPersonneAssociees() + best.getNbpersonnes();
-
-					//S'il reste de la place on associe l'agence sinon on passe au lieu suivant
-					if(nbPersonnes < 60) {
-						agencesTmp.remove(best);
-						courant.setNbPersonneAssociees(nbPersonnes);
-						Trajet trajet = new Trajet(best,courant);
-						
-						prixTotal += trajet.getDistanceKm()*best.getNbpersonnes()*Commun.PRIX_TRAJET;
-						distanceTotale += trajet.getDistanceKm()*best.getNbpersonnes()*2;
-						trajets.add(trajet);
-					}
-					else {
-						nonPlein = false;
-					}
-				}
-				else {
-					nonPlein = false;
-				}
-			}
-		}
-		affichage.update();
-	}
-
+	
 	private void calculNbLieuxMin() {
 		int nbPersonnes = 0;
     	for(Agence agence : agences) {
@@ -936,6 +836,14 @@ public class Logique extends Thread {
 	public String getPathFichier() {
 		return pathFichier;
 	}
+	
+	public int getTailleGeneration() {
+		return tailleGeneration;
+	}
+	
+	public float getTauxMutation() {
+		return tauxMutation;
+	}
 
 	public void setPathFichier(String pathFichier) {
 		this.pathFichier = pathFichier;
@@ -944,7 +852,7 @@ public class Logique extends Thread {
 	public void setIterations(int iterations) {
 		this.iterations = iterations;
 	}
-
+	
 	public void setNbLieuxMin(int nbLieuxMin) {
 		this.nbLieuxMin = nbLieuxMin;
 	}
@@ -960,5 +868,13 @@ public class Logique extends Thread {
 
 	public void setTemperature(int temperature) {
 		this.temperature = temperature;
+	}
+	
+	public void setTailleGeneration(int tailleGeneration) {
+		this.tailleGeneration = tailleGeneration;
+	}
+
+	public void setTauxMutation(float tauxMutation) {
+		this.tauxMutation = tauxMutation;
 	}
 }
