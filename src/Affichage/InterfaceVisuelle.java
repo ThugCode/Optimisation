@@ -235,7 +235,7 @@ public class InterfaceVisuelle extends JFrame
 		lbl_tauxDeMutation.setBounds(20, height, 200, 30);
 		pnl_control.add(lbl_tauxDeMutation);
 		
-		txt_tauxMutation = new JTextField("1");
+		txt_tauxMutation = new JTextField("10");
 		txt_tauxMutation.setBounds(240, height, 60, 30);
 		txt_tauxMutation.addKeyListener(this);
 		pnl_control.add(txt_tauxMutation);

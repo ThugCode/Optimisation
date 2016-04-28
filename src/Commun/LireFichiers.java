@@ -1,12 +1,16 @@
 package Commun;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 import Arcs.Lien;
+import Calcul.Solution;
 import Noeuds.Agence;
 import Noeuds.GroupeAgence;
 import Noeuds.Lieu;
@@ -100,5 +104,22 @@ public class LireFichiers {
 		} catch (IOException ioe) { System.out.println("Erreur IO --" + ioe.toString());}
 		
 		return liste;
+	}
+	
+	public static void ecrireFichier(List<Solution> solutions) {
+		
+		String filePath = new File("").getAbsolutePath();
+		filePath += "/Fichiers/report.txt";
+
+		try {
+			FileWriter fw = new FileWriter(filePath,true);
+			for(Solution solution : solutions) {
+			fw.write(solution.toString());
+			fw.write(";");
+			}
+			fw.write("\n");
+		    fw.close();
+		} catch (FileNotFoundException fnfe) { System.out.println("Fichier de messages introuvable");
+		} catch (IOException e) { System.out.println("Erreur IO --" + e.toString()); }
 	}
 }

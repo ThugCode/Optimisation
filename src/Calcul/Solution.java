@@ -45,11 +45,11 @@ public class Solution {
 	
 	@Override
 	public String toString() {
-		return "Prix : " + this.prix + " Prob : " + this.proba ;
+		return this.prix + "";
 	}
 	
 	@Override
 	public Solution clone() {
-		return new Solution((BitSet) this.lieux.clone(),this.prix, this.proba);
+		return new Solution((BitSet) this.lieux.clone(),this.prix, new Float(0));
 	}
 }
