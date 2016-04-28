@@ -541,22 +541,21 @@ public class Logique extends Thread {
 		//Calcul du nombre de lieux minimun pour qu'une solution soit viable
 		calculNbLieuxMin();
 		
-		//Génération aléatoire des premières solutions
-		while(generation.size() < Commun.NB_SOLUTION_ALGOGENE) {
-			BitSet bitSet = new BitSet(lieux.size());
-			int nbIteration = r.nextInt(nbLieuxMin + r.nextInt(10));
-
-			for(int j = 0; j < nbIteration; j++) {
-				bitSet.set(r.nextInt(lieux.size()));
-			}
-			//Il faut que la solution soit valide pour qu'elle soit ajoutée
-			if(bitSet.cardinality() >= nbLieuxMin)
-			{
-				solution = new Solution(bitSet,new Float(0), new Float(0));
-				generation.add(solution);
-			}
-		}
-		
+		while(generation.size() < Commun.NB_SOLUTION_ALGOGENE) { 
+			BitSet bitSet = new BitSet(lieux.size()); 
+			int nbIteration = nbLieuxMin+ r.nextInt(nbLieuxMin*5); 
+			int nbBitSet = 0; 
+			
+			while(nbBitSet < nbIteration) {
+				int a = r.nextInt(lieux.size());
+				if(!bitSet.get(a)){ 
+					bitSet.set(r.nextInt(lieux.size()));
+					nbBitSet ++; 
+				}
+			} 
+			solution = new Solution(bitSet,new Float(0), new Float(0));
+			generation.add(solution);
+		} 
 		recursifAlgogene(generation, 1);
 	}
 	
@@ -565,17 +564,17 @@ public class Logique extends Thread {
 		Random r = new Random();
 		
 		//Affichage de la génération
-		System.out.println("Génération :" + iteration);
-		for(Solution s : generation) {
-			System.out.println(s.toString());
-		}
+//		System.out.println("Génération :" + iteration);
+//		for(Solution s : generation) {
+//			System.out.println(s.toString());
+//		}
 		
 		solutions = Reproduction(generation);
 		
-		System.out.println("Solution reproduitent :" + iteration);
-		for(Solution s : solutions) {
-			System.out.println(s.toString());
-		}
+//		System.out.println("Solution reproduitent :" + iteration);
+//		for(Solution s : solutions) {
+//			System.out.println(s.toString());
+//		}
 		
 		Solution solution;
 		Solution copie;
@@ -600,7 +599,7 @@ public class Logique extends Thread {
 				}
 				
 				//Mutation
-				if(r.nextFloat() < 0.01){
+				if(r.nextFloat() < 0.10){
 					solution.getLieux().flip(r.nextInt(solution.getLieux().size()));
 				}
 				
@@ -608,7 +607,7 @@ public class Logique extends Thread {
 				copies.add(temp);
 		}
 		//Rappel de la fonction avec la nouvelle generation
-		if(iteration < 10) {
+		if(iteration < 1000) {
 			recursifAlgogene(copies, iteration + 1);		
 		} else {
 			System.out.println("Meilleure solution : " + meilleureSolutionAlgogene);
@@ -640,7 +639,7 @@ public class Logique extends Thread {
 			}
 		});
 		
-		//System.out.println("Génération : " + generation.get(0));
+		System.out.println("Génération : " + generation.get(0));
 
 		//Calcul de la propabilité de choisir une solution
 		for(Solution solution : generation) {
@@ -703,7 +702,8 @@ public class Logique extends Thread {
 		float min;
 		Lieu courant;
 		Trajet temp = new Trajet();
-		int prix = 0;
+		float prix = 0;
+		prix = Commun.PRIX_LIEU*solution.cardinality();
 
 		//Melange de la liste des agences afin de maximer l'exploration de solutions diverses
 		Collections.shuffle(agences);
@@ -712,23 +712,20 @@ public class Logique extends Thread {
 			temp.setAgence(agence);
 			best = null;
 			min = Float.MAX_VALUE;
+			
 
 			for (int i = solution.nextSetBit(0); i >= 0; i = solution.nextSetBit(i+1)) {
-				if (i == Integer.MAX_VALUE || i > lieux.size()) {
+				if (i == Integer.MAX_VALUE || i >= lieux.size()) {
 					break; // or (i+1) would overflow
 				}
 				courant = lieux.get(i);
+				courant.setNbPersonneAssociees(0);
 
 				temp.setLieu(courant);
 				if(best == null || temp.getDistanceKm() < min && courant.getNbPersonneAssociees() < 60) {
 					best = courant;
 					min = temp.getDistanceKm();
 				}
-			}
-
-			if(!best.isAssocie()) {
-				best.setAssocie(true);
-				prix += Commun.PRIX_LIEU;
 			}
 
 			Trajet trajet = new Trajet(agence, best);
@@ -738,10 +735,11 @@ public class Logique extends Thread {
 			prix += trajet.getDistanceKm()*agence.getNbpersonnes()*Commun.PRIX_TRAJET;
 			best.setNbPersonneAssociees(best.getNbPersonneAssociees()+agence.getNbpersonnes());
 		}
-
 		return prix;
 	}
-	
+	/**
+	 * @deprecated
+	 */
 	private float calculPrixSolutionOld(BitSet solution) {
 		//Copie de la liste des agences afin de pouvoir en supprimer
 		ArrayList<Agence> agencesTmp = new ArrayList<Agence>(agences); 
@@ -808,6 +806,9 @@ public class Logique extends Thread {
 		return prix;
 	}
 
+	/**
+	 * @deprecated
+	 */
 	private void miseAJourMeilleurSolution(Solution solution) {
 		//Copie de la liste des agences afin de pouvoir en supprimer
 		ArrayList<Agence> agencesTmp = new ArrayList<Agence>(agences); 
